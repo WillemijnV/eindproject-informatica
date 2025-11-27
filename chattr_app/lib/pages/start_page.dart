@@ -15,7 +15,8 @@ class StartPage extends StatelessWidget {
               style: TextStyle(
                 fontSize: 40, 
                 fontWeight: FontWeight.bold,
-                ),
+                color: Colors.amber,
+              ),
             ),
 
             SizedBox(height: 40),
@@ -25,15 +26,25 @@ class StartPage extends StatelessWidget {
               children: [
                 ElevatedButton(
                   onPressed: () => Navigator.pushNamed(context, '/login'),
-                  child: Text("Inloggen"),
+                  child: Text(
+                    "Inloggen",
+                    style: TextStyle(
+                      color: Colors.amber,
+                    ),
+                  ),
                 ),
 
                 SizedBox(width: 20),
 
-              ElevatedButton(
-                onPressed: () => Navigator.pushNamed(context, '/register'),
-                child: Text("Registreren")
-              ),
+                ElevatedButton(
+                  onPressed: () => Navigator.pushNamed(context, '/register'),
+                  child: Text(
+                    "Registreren",
+                    style: TextStyle(
+                      color: Colors.amber,
+                    ),
+                  ),
+                ),
               ],
             ),
           ],
