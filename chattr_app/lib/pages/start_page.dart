@@ -11,7 +11,7 @@ class StartPage extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Text(
-              'Chattr',
+              'Welkom bij Chattr',
               style: TextStyle(
                 fontSize: 40, 
                 fontWeight: FontWeight.bold,
