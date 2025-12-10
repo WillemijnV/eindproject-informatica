@@ -1,16 +1,26 @@
-// hier komt het scherm om te registreren
-
-//minimale om te kijken of de app werkt
 import 'package:flutter/material.dart';
 
-class RegisterPage extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: Text("Registreren")),
-      body: Center(
-        child: Text("Registratie komt later"),
-      ),
-    );
-  }
-}
+Form(
+    key: _formKey,
+    child: Column(
+        children: [
+            TextFormField(
+                decoration: InputDecoration(labelText: 'Vul uw naam in'),
+                validator: (value) {
+                    if (value == null || value.isEmpty) {
+                        return 'Vul alstublieft uw naam in';
+                    }
+                    return null;
+                },
+            ),
+            ElevatedButton(
+                onPressed: () {
+                    if (_formKey.currentState!.validate()) {
+                        // Process data
+                    }
+                },
+                child: Text('Indienen'),
+            ),
+        ],
+    ),
+)
