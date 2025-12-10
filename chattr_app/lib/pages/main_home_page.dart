@@ -19,17 +19,20 @@ class _MainHomePageState extends State<MainHomePage> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text("Welkom, ${state.userName}"),
+        automaticallyImplyLeading: false,
+        title: Text("Welkom, ${state.userName}", style: TextStyle(color: Colors.amber)),
+        backgroundColor: const Color.fromARGB(255, 19, 18, 75),
         actions: [
-          IconButton(
-            icon: Icon(Icons.logout),
+          TextButton.icon(
             onPressed: () {
               state.logout();
-              Navigator.pushReplacementNamed(
+              Navigator.pushReplacement(
                 context,
-                MaterialPageRoute(builder: (_) => StartPage()) as String,
-                );
+                MaterialPageRoute(builder: (_) => StartPage()),
+              );
             },
+            icon: Icon(Icons.logout, color: Colors.amber),
+            label: Text('Uitloggen', style: TextStyle(color: Colors.amber))
           ),
         ],
       ),
