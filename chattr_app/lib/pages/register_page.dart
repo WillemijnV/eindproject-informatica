@@ -34,6 +34,17 @@ class _RegisterPageState extends State<RegisterPage> {
                   return null;
                 },
               ),
+              TextFormField(
+                decoration: const InputDecoration(
+                    labelText: 'E-mailadres',
+                ),
+                validator: (value) {
+                   if (value == null || value.isEmpty) {
+                    return 'Vul alstublieft uw naam in';
+                  }
+                  return null; 
+                },
+              ),
               const SizedBox(height: 20),
               ElevatedButton(
                 onPressed: () {
