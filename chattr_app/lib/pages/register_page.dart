@@ -36,11 +36,44 @@ class _RegisterPageState extends State<RegisterPage> {
               ),
               TextFormField(
                 decoration: const InputDecoration(
-                    labelText: 'E-mailadres',
+                    labelText: 'Emailadres',
                 ),
                 validator: (value) {
                    if (value == null || value.isEmpty) {
-                    return 'Vul alstublieft uw naam in';
+                    return 'Vul alstublieft uw emailadres in';
+                  }
+                  return null; 
+                },
+              ),
+              TextFormField(
+                decoration: const InputDecoration(
+                    labelText: 'Telefoonnummer',
+                ),
+                validator: (value) {
+                   if (value == null || value.isEmpty) {
+                    return 'Vul alstublieft uw telefoonnummer in';
+                  }
+                  return null; 
+                },
+              ),
+              TextFormField(
+                decoration: const InputDecoration(
+                    labelText: 'Gebruikersnaam',
+                ),
+                validator: (value) {
+                   if (value == null || value.isEmpty) {
+                    return 'Vul alstublieft uw gebruikersnaam in';
+                  }
+                  return null; 
+                },
+              ),
+              TextFormField(
+                decoration: const InputDecoration(
+                    labelText: 'Wachtwoord',
+                ),
+                validator: (value) {
+                   if (value == null || value.isEmpty) {
+                    return 'Vul alstublieft uw wachtwoord in';
                   }
                   return null; 
                 },
