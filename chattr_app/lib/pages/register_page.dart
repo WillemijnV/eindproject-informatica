@@ -88,7 +88,21 @@ class _RegisterPageState extends State<RegisterPage> {
                     );
                   }
                 },
-                child: const Text('Indienen'),
+                child: const Text(
+                  'Indienen',
+                  style: TextStyle(
+                    color: Colors.amber,
+                  ),
+                ),
+              ),
+              ElevatedButton(
+                onPressed: () => Navigator.pushNamed(context, '/login'),
+                child: Text(
+                  'Inloggen',
+                  style: TextStyle(
+                    color: Colors.amber,
+                  ),
+                ),
               ),
             ],
           ),
