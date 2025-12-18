@@ -1,6 +1,5 @@
 // hier komt het inlogscherm
 
-//minimale om te kijken of de app werkt
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:chattr_app/app_state.dart';
@@ -22,24 +21,6 @@ class _LoginPageState extends State<LoginPage> {
   
   bool _verbergWachtwoord = true;
   bool _laden = false;
-
-  //Wachtwoord regels
-  bool hasUppercase = false;
-  bool hasLowercase = false;
-  bool hasNumber = false;
-  bool hasSpecialChar = false;
-  bool hasMinLength = false;
-
-  //Wachtwoord controleren
-  void _checkPassword(String value) {
-    setState(() {
-      hasUppercase = value.contains(RegExp(r'[A-Z]'));
-      hasLowercase = value.contains(RegExp(r'[a-z]'));
-      hasNumber = value.contains(RegExp(r'[0-9]'));
-      hasSpecialChar = value.contains(RegExp(r'[!@#\$%^&*(),.?{}|<>/]'));
-      hasMinLength = value.length >= 8;
-    });
-  }
 
   @override
   void dispose() {
@@ -65,21 +46,6 @@ class _LoginPageState extends State<LoginPage> {
     if (mounted) {
       Navigator.pushReplacementNamed(context, '/home');
     }
-  }
-
-  //Widget controle
-  Widget _wachtwoordCheck(String text, bool isValid) {
-    return Row(
-      children: [
-        Icon(
-          isValid ? Icons.check_circle : Icons.cancel,
-          color: isValid ? Colors.green : Colors.red,
-          size: 18,
-        ),
-        const SizedBox(width: 8),
-        Text(text),
-      ],
-    );
   }
 
   @override
@@ -142,7 +108,6 @@ class _LoginPageState extends State<LoginPage> {
                 TextFormField(
                   controller: _wachtwoordController,
                   obscureText: _verbergWachtwoord,
-                  onChanged: _checkPassword,
                   decoration: InputDecoration(
                     labelText: "Wachtwoord",
                     prefixIcon: const Icon(Icons.lock_outline),
@@ -164,25 +129,11 @@ class _LoginPageState extends State<LoginPage> {
                     if (value == null || value.isEmpty) {
                       return "Vul je wachtwoord in";
                     }
-                    if (!hasUppercase ||
-                        !hasLowercase ||
-                        !hasNumber ||
-                        !hasSpecialChar ||
-                        !hasMinLength) {
-                      return "Wachtwoord is niet sterk genoeg";
-                    }
                     return null;
                   },
                 ),
 
                 const SizedBox(height: 10),
-
-                //Wachtwoord regels
-                _wachtwoordCheck("Minimaal 8 tekens", hasMinLength),
-                _wachtwoordCheck("Minstens 1 hoofdletter", hasUppercase),
-                _wachtwoordCheck("Minstens 1 kleine letter", hasLowercase),
-                _wachtwoordCheck("Minstens 1 cijfer", hasNumber),
-                _wachtwoordCheck("Minstens 1 speciaal teken", hasSpecialChar),
 
                 const SizedBox(height: 10),
 

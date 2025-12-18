@@ -25,25 +25,23 @@ class StartPage extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 ElevatedButton(
-                  onPressed: () => Navigator.pushNamed(context, '/login'),
-                  child: Text(
-                    "Inloggen",
-                    style: TextStyle(
-                      color: Colors.amber,
-                    ),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.amber,
+                    foregroundColor: Colors.black,
                   ),
+                  onPressed: () => Navigator.pushNamed(context, '/login'),
+                  child: const Text("Inloggen"),
                 ),
 
                 SizedBox(width: 20),
 
                 ElevatedButton(
-                  onPressed: () => Navigator.pushNamed(context, '/register'),
-                  child: Text(
-                    "Registreren",
-                    style: TextStyle(
-                      color: Colors.amber,
-                    ),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.amber,
+                    foregroundColor: Colors.black,
                   ),
+                  onPressed: () => Navigator.pushNamed(context, '/register'),
+                  child: const Text("Registreren"),
                 ),
               ],
             ),
@@ -53,4 +51,5 @@ class StartPage extends StatelessWidget {
     );
   }
 }
+
 
