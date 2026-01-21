@@ -1,49 +1,93 @@
 //herbruikbare chatpagina voor het chatten met contacten
 
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
-class ChatPage extends StatelessWidget {
+import 'package:chattr_app/chat_state.dart';
+
+class ChatPage extends StatefulWidget {
   final String contactName;
   ChatPage({required this.contactName});
 
   @override
+  State<ChatPage> createState() => _ChatPageState();
+
+}
+
+class _ChatPageState extends State<ChatPage> {
+  final TextEditingController _controller = TextEditingController();
+
+  @override
   Widget build(BuildContext context) {
+    final chatState = context.watch<ChatState>();
+    final messages = chatState.getMessage(widget.contactName);
+
     return Scaffold(
       appBar: AppBar(
-        title: Text(contactName),
-        backgroundColor: const Color.fromARGB(255, 19, 18, 75),
+        title: Text(widget.contactName),
       ),
       body: Column(
         children: [
-          //hier komt de chatlijst
           Expanded(
-            child: Center(
-              child: Text(
-                "Hier komen de berichten met $contactName", 
-                style: TextStyle(fontSize: 18),
-              ),
+            child: ListView.builder(
+              itemCount: messages.length,
+              itemBuilder: (context, index) {
+                final message = messages[index];
+
+                return Align(
+                  alignment: message.isMe
+                    ? Alignment.centerRight
+                    : Alignment.centerLeft,
+                  child: Container(
+                    margin: const EdgeInsets.symmetric(
+                      vertical: 4,
+                      horizontal: 8,
+                    ),
+                    padding: const EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                      color: message.isMe
+                        ? Colors.amber
+                        : Colors.grey.shade700,
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Text(
+                      message.text,
+                      style: TextStyle(
+                        color: 
+                          message.isMe ? Colors.black : Colors.white,
+                      ),
+                    ),
+                  ),
+                );
+              },
             ),
           ),
 
-          //typen van bericht
           Padding(
             padding: const EdgeInsets.all(8.0),
             child: Row(
               children: [
                 Expanded(
                   child: TextField(
-                    decoration: InputDecoration(
+                    controller: _controller,
+                    decoration: const InputDecoration(
                       hintText: "Typ hier je bericht...",
-                      border: OutlineInputBorder(),
                     ),
                   ),
                 ),
-                SizedBox(width: 8),
+                const SizedBox(width: 8),
                 ElevatedButton(
-                  onPressed: () { 
-                    //hier komt later de functie om berichten te versturen
-                   },
-                  child: Icon(Icons.send),
+                  onPressed: () {
+                    if (_controller.text.trim().isEmpty) return;
+
+                    chatState.sendMessage(
+                      widget.contactName,
+                      _controller.text,
+                    );
+
+                    _controller.clear();
+                  },
+                  child: const Icon(Icons.send),
                 ),
               ],
             ),

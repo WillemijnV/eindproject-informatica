@@ -4,11 +4,11 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import 'app_state.dart';
+import 'chat_state.dart';
 import 'pages/main_home_page.dart';
 import 'pages/start_page.dart';
 import 'pages/login_page.dart';
 import 'pages/register_page.dart';
-import 'pages/chat_page.dart';
 
 void main() {
   runApp(MyApp());
@@ -19,8 +19,11 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ChangeNotifierProvider(
-      create: (context) => AppState(),
+    return MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => AppState()),
+        ChangeNotifierProvider(create: (_) => ChatState()),
+      ],
       child: MaterialApp(
         title: 'Chattr',
         theme: ThemeData(
@@ -84,20 +87,14 @@ class MyApp extends StatelessWidget {
           ),
         ),
 
-           
-        
-        home: StartPage(),
 
+        home: StartPage(),
         routes: {
           '/login': (context) => LoginPage(),
           '/register': (context) => RegisterPage(),
           '/home': (context) => MainHomePage(),
-          '/chat': (context) => ChatPage(contactName: 'Onbekend'),
         }
       ),
     );
   }
 }
-
-
-

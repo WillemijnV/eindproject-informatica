@@ -22,7 +22,10 @@ class _MainHomePageState extends State<MainHomePage> {
     return Scaffold(
       appBar: AppBar(
         automaticallyImplyLeading: false,
-        title: Text("Welkom, ${state.userName}", style: TextStyle(color: Colors.amber)),
+        title: Text(
+          "Welkom, ${state.userName}", 
+          style: TextStyle(color: Colors.amber)
+        ),
         backgroundColor: const Color.fromARGB(255, 19, 18, 75),
         actions: [
           TextButton.icon(
@@ -63,6 +66,8 @@ class _MainHomePageState extends State<MainHomePage> {
 
       //nieuwe chat button
       floatingActionButton: FloatingActionButton(
+        backgroundColor: Colors.amber,
+        child: Icon(Icons.chat, color: Colors.black),
         onPressed: () {
           Navigator.push(
             context,
@@ -71,8 +76,7 @@ class _MainHomePageState extends State<MainHomePage> {
             ),
           );
         },
-        backgroundColor: Colors.amber,
-        child: Icon(Icons.chat, color: Colors.black),
+
       ),
     );
   }
