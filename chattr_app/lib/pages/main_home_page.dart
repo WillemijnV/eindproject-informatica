@@ -4,8 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import 'package:chattr_app/app_state.dart';
-
 import 'start_page.dart';
+import 'chat_page.dart';
 
 class MainHomePage extends StatefulWidget {
   @override
@@ -13,6 +13,8 @@ class MainHomePage extends StatefulWidget {
 }
 
 class _MainHomePageState extends State<MainHomePage> {
+  List<String> contacts = ['Anna', 'Bram', 'Clara'];
+
   @override
   Widget build(BuildContext context) {
     final state = context.watch<AppState>();
@@ -36,8 +38,41 @@ class _MainHomePageState extends State<MainHomePage> {
           ),
         ],
       ),
-      body: Center(
-        child: Text("Dit wordt je chat lijst"),
+
+      body: ListView.builder(
+        itemCount: contacts.length,
+        itemBuilder: (context, index) {
+          return ListTile(
+            leading: CircleAvatar(
+              child: Text(contacts[index][0]),
+            ),
+            title: Text(contacts[index]),
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => ChatPage(
+                    contactName: contacts[index],
+                  ),
+                ),
+              );
+            },
+          );
+        },
+      ),
+
+      //nieuwe chat button
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) => ChatPage(contactName: "Nieuwe chat"),
+            ),
+          );
+        },
+        backgroundColor: Colors.amber,
+        child: Icon(Icons.chat, color: Colors.black),
       ),
     );
   }
