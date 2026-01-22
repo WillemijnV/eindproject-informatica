@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../services/auth_service.dart';
 
 class RegisterPage extends StatefulWidget {
   const RegisterPage({super.key});
@@ -59,15 +60,30 @@ class _RegisterPageState extends State<RegisterPage> {
     super.dispose();
   }
 
-  void _register() {
-    if (!_formKey.currentState!.validate()) return;
+  Future<void> _register() async {
+  if (!_formKey.currentState!.validate()) return;
 
+  final error = await registerUser(
+    _gebruikersnaamController.text.trim(),
+    _wachtwoordController.text,
+  );
+
+  if (error != null) {
+    // Gebruikersnaam bestaat al
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Registratie gelukt!')),
+      SnackBar(content: Text(error)),
     );
-
-    Navigator.pushReplacementNamed(context, '/login');
+    return;
   }
+
+  // Succes
+  ScaffoldMessenger.of(context).showSnackBar(
+    const SnackBar(content: Text('Registratie gelukt!')),
+  );
+
+  Navigator.pushReplacementNamed(context, '/login');
+}
+
 
     @override
     Widget build(BuildContext context) {

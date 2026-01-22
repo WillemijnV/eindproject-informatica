@@ -3,6 +3,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:chattr_app/app_state.dart';
+import '../services/auth_service.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -30,23 +31,36 @@ class _LoginPageState extends State<LoginPage> {
   }
 
   //Login functie
-  void _login() async {
-    if (!_formKey.currentState!.validate()) return;
+  Future<void> _login() async {
+  if (!_formKey.currentState!.validate()) return;
 
-    setState(() => _laden = true);
-    await Future.delayed(const Duration(milliseconds: 800));
+  setState(() => _laden = true);
 
-    context.read<AppState>().login(
-      "123",
-      _gebruikersnaamController.text,
+  final success = await loginUser(
+    _gebruikersnaamController.text.trim(),
+    _wachtwoordController.text,
+  );
+
+  setState(() => _laden = false);
+
+  if (!success) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Onjuiste gebruikersnaam of wachtwoord')),
     );
-
-    setState(() => _laden = false);
-
-    if (mounted) {
-      Navigator.pushReplacementNamed(context, '/home');
-    }
+    return;
   }
+
+  // Succesvol ingelogd
+  context.read<AppState>().login(
+    "123", // later eventueel userId
+    _gebruikersnaamController.text.trim(),
+  );
+
+  if (mounted) {
+    Navigator.pushReplacementNamed(context, '/home');
+  }
+}
+
 
   @override
   Widget build(BuildContext context) {
