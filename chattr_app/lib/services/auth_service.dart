@@ -1,25 +1,26 @@
 import 'dart:convert';
-import 'dart:html';  // << belangrijk voor web
 import 'package:crypto/crypto.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 String hashPassword(String password) {
   final bytes = utf8.encode(password);
-  final digest = sha256.convert(bytes);
-  return digest.toString();
+  return sha256.convert(bytes).toString();
 }
 
-List _readUsers() {
-  final jsonString = window.localStorage['users'];
+Future<List<Map<String, dynamic>>> _readUsers() async {
+  final prefs = await SharedPreferences.getInstance();
+  final jsonString = prefs.getString('users');
   if (jsonString == null) return [];
-  return jsonDecode(jsonString);
+  return List<Map<String, dynamic>>.from(jsonDecode(jsonString));
 }
 
-void _writeUsers(List users) {
-  window.localStorage['users'] = jsonEncode(users);
+Future<void> _writeUsers(List users) async {
+  final prefs = await SharedPreferences.getInstance();
+  await prefs.setString('users', jsonEncode(users));
 }
 
 Future<String?> registerUser(String username, String password) async {
-  List users = _readUsers();
+  final users = await _readUsers();
 
   if (users.any((u) => u['username'] == username)) {
     return 'Gebruikersnaam bestaat al';
@@ -30,19 +31,19 @@ Future<String?> registerUser(String username, String password) async {
     'password': hashPassword(password),
   });
 
-  _writeUsers(users);
+  await _writeUsers(users);
   return null;
 }
 
 Future<bool> loginUser(String username, String password) async {
-  List users = _readUsers();
+  final users = await _readUsers();
 
   final user = users.firstWhere(
     (u) => u['username'] == username,
-    orElse: () => null,
+    orElse: () => {},
   );
 
-  if (user == null) return false;
+  if (user.isEmpty) return false;
 
   return user['password'] == hashPassword(password);
 }
