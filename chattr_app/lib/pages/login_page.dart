@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:chattr_app/app_state.dart';
 import '../services/auth_service.dart';
+import 'package:chattr_app/chat_state.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -56,11 +57,14 @@ class _LoginPageState extends State<LoginPage> {
     _gebruikersnaamController.text.trim(),
   );
 
+  //aanpassing door Audrey:
+  final chatState = context.read<ChatState>();
+  chatState.setCurrentUser(_gebruikersnaamController.text.trim());
+
   if (mounted) {
     Navigator.pushReplacementNamed(context, '/home');
-  }
+  };
 }
-
 
   @override
   Widget build(BuildContext context) {

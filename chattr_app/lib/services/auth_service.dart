@@ -18,6 +18,12 @@ void _writeUsers(List users) {
   window.localStorage['users'] = jsonEncode(users);
 }
 
+//aanpassing door Audrey
+List<Map<String, dynamic>> getAllUsers() {
+  final rawUsers = _readUsers();
+  return rawUsers.map<Map<String, dynamic>>((u) => Map<String, dynamic>.from(u)).toList();
+}
+
 Future<String?> registerUser(String username, String password) async {
   List users = _readUsers();
 

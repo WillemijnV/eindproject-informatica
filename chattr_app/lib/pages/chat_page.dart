@@ -18,6 +18,20 @@ class _ChatPageState extends State<ChatPage> {
   final TextEditingController _controller = TextEditingController();
 
   @override
+  void initState() {
+  super.initState();
+  final chatState = context.read<ChatState>();
+
+  chatState.fetchMessages(widget.contactName);
+
+  Future.doWhile(() async {
+    await Future.delayed(const Duration(seconds: 3));
+    await chatState.fetchMessages(widget.contactName);
+    return mounted;
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
     final chatState = context.watch<ChatState>();
     final messages = chatState.getMessage(widget.contactName);
