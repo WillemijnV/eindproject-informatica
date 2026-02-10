@@ -20,7 +20,7 @@ Future<void> _writeUsers(List users) async {
 }
 
 //aanpassing door Audrey
-List<Map<String, dynamic>> getAllUsers() async {
+Future<List<Map<String, dynamic>>> getAllUsers() async {
   final rawUsers = await _readUsers();
   return rawUsers.map<Map<String, dynamic>>((u) => Map<String, dynamic>.from(u)).toList();
 }
