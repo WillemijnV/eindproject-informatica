@@ -27,7 +27,7 @@ class Message {
 class ChatState extends ChangeNotifier {
   final Map<String, List<Message>> _chats = {};
 
-  static const String baseUrl = 'https://729bd5b9-d330-416c-bbbf-87ce6cdd04a7-00-1kstgmc8ftol5.worf.replit.dev/messages';
+  static const String baseUrl = 'https://729bd5b9-d330-416c-bbbf-87ce6cdd04a7-00-1kstgmc8ftol5.worf.replit.dev:5000/messages';
   String? currentUser;
 
   void setCurrentUser(String username) {
@@ -78,5 +78,11 @@ class ChatState extends ChangeNotifier {
   void clearChats() {
     _chats.clear();
     notifyListeners();
+  }
+
+  //actieve contacten ophalen
+  List<String> getActiveContacts() {
+    if (currentUser == null) return [];
+    return _chats.keys.toList();
   }
 }

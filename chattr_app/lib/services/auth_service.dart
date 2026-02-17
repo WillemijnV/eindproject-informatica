@@ -1,55 +1,48 @@
 import 'dart:convert';
-import 'package:crypto/crypto.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:http/http.dart' as http;
 
-String hashPassword(String password) {
-  final bytes = utf8.encode(password);
-  return sha256.convert(bytes).toString();
-}
-
-Future<List<Map<String, dynamic>>> _readUsers() async {
-  final prefs = await SharedPreferences.getInstance();
-  final jsonString = prefs.getString('users');
-  if (jsonString == null) return [];
-  return List<Map<String, dynamic>>.from(jsonDecode(jsonString));
-}
-
-Future<void> _writeUsers(List users) async {
-  final prefs = await SharedPreferences.getInstance();
-  await prefs.setString('users', jsonEncode(users));
-}
-
-//aanpassing door Audrey
-Future<List<Map<String, dynamic>>> getAllUsers() async {
-  final rawUsers = await _readUsers();
-  return rawUsers.map<Map<String, dynamic>>((u) => Map<String, dynamic>.from(u)).toList();
-}
+const String baseUrl =
+  'https://729bd5b9-d330-416c-bbbf-87ce6cdd04a7-00-1kstgmc8ftol5.worf.replit.dev:5000';
 
 Future<String?> registerUser(String username, String password) async {
-  final users = await _readUsers();
+  final response = await http.post(
+    Uri.parse('$baseUrl/register'),
+    headers: {'Content-Type': 'application/json'},
+    body: jsonEncode({
+      'username': username,
+      'password': password,
+    }),
+  );
 
-  if (users.any((u) => u['username'] == username)) {
-    return 'Gebruikersnaam bestaat al';
+  if (response.statusCode == 201) {
+    return null;
+  } else {
+    final data = jsonDecode(response.body);
+    return data['error'];
   }
-
-  users.add({
-    'username': username,
-    'password': hashPassword(password),
-  });
-
-  await _writeUsers(users);
-  return null;
 }
 
 Future<bool> loginUser(String username, String password) async {
-  final users = await _readUsers();
-
-  final user = users.firstWhere(
-    (u) => u['username'] == username,
-    orElse: () => {},
+  final response = await http.post(
+    Uri.parse('$baseUrl/login'),
+    headers: {'Content-Type': 'application/json'},
+    body: jsonEncode({
+      'username': username,
+      'password': password,
+    }),
   );
 
-  if (user.isEmpty) return false;
+  return response.statusCode == 200;
+}
 
-  return user['password'] == hashPassword(password);
+Future<List<String>> fetchAllUsernames() async {
+  final response = await http.get(
+    Uri.parse('$baseUrl/users'),
+  );
+
+  if (response.statusCode == 200) {
+    return List<String>.from(jsonDecode(response.body));
+  } else {
+    return [];
+  }
 }
