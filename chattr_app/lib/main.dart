@@ -9,6 +9,7 @@ import 'pages/main_home_page.dart';
 import 'pages/start_page.dart';
 import 'pages/login_page.dart';
 import 'pages/register_page.dart';
+import 'pages/new_contact_page.dart';
 
 void main() {
   runApp(MyApp());
@@ -93,6 +94,7 @@ class MyApp extends StatelessWidget {
           '/login': (context) => LoginPage(),
           '/register': (context) => RegisterPage(),
           '/home': (context) => MainHomePage(),
+          '/new_contact': (context) => NewContactPage(),
         }
       ),
     );

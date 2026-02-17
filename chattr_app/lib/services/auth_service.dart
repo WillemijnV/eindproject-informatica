@@ -19,6 +19,12 @@ Future<void> _writeUsers(List users) async {
   await prefs.setString('users', jsonEncode(users));
 }
 
+//aanpassing door Audrey
+Future<List<Map<String, dynamic>>> getAllUsers() async {
+  final rawUsers = await _readUsers();
+  return rawUsers.map<Map<String, dynamic>>((u) => Map<String, dynamic>.from(u)).toList();
+}
+
 Future<String?> registerUser(String username, String password) async {
   final users = await _readUsers();
 

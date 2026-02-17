@@ -1,5 +1,6 @@
 //herbruikbare chatpagina voor het chatten met contacten
 
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -16,6 +17,26 @@ class ChatPage extends StatefulWidget {
 
 class _ChatPageState extends State<ChatPage> {
   final TextEditingController _controller = TextEditingController();
+  Timer? _pollingTimer;
+
+  @override
+  void initState() {
+    super.initState();
+    final chatState = context.read<ChatState>();
+
+    chatState.fetchMessages(widget.contactName);
+
+    _pollingTimer = Timer.periodic(const Duration(seconds: 3), (_) async {
+      await chatState.fetchMessages(widget.contactName);
+    });
+  }
+
+  @override
+  void dispose() {
+    _pollingTimer?.cancel();
+    _controller.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
