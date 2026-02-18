@@ -60,6 +60,7 @@ class _LoginPageState extends State<LoginPage> {
   //aanpassing door Audrey:
   final chatState = context.read<ChatState>();
   chatState.setCurrentUser(_gebruikersnaamController.text.trim());
+  await chatState.loadAllChatsForUsers();
 
   if (mounted) {
     Navigator.pushReplacementNamed(context, '/home');

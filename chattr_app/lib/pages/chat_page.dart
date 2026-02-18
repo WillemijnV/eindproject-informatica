@@ -24,11 +24,13 @@ class _ChatPageState extends State<ChatPage> {
     super.initState();
     final chatState = context.read<ChatState>();
 
+    chatState.ensureChatExists(widget.contactName);
     chatState.fetchMessages(widget.contactName);
 
-    _pollingTimer = Timer.periodic(const Duration(seconds: 3), (_) async {
-      await chatState.fetchMessages(widget.contactName);
-    });
+    _pollingTimer = Timer.periodic(
+      const Duration(seconds: 3),
+      (_) => chatState.fetchMessages(widget.contactName),
+    );
   }
 
   @override

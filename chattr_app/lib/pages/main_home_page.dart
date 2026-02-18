@@ -17,28 +17,11 @@ class MainHomePage extends StatefulWidget {
 }
 
 class _MainHomePageState extends State<MainHomePage> {
-  List<String> contacts = [];
-
-  @override
-  void initState() {
-    super.initState();
-    loadContacts();
-  }
-
-  Future<void> loadContacts() async {
-    final chatState = context.read<ChatState>();
-
-    //haal actieve contacten op
-    final activeContacts = chatState.getActiveContacts();
-
-    setState(() {
-      contacts = activeContacts;
-    });
-  }
-
   @override
   Widget build(BuildContext context) {
     final state = context.watch<AppState>();
+    final chatState = context.watch<ChatState>();
+    final contacts = chatState.getActiveContacts();
 
     return Scaffold(
       appBar: AppBar(
@@ -51,6 +34,7 @@ class _MainHomePageState extends State<MainHomePage> {
         actions: [
           TextButton.icon(
             onPressed: () {
+              context.read<ChatState>().clearChats();
               state.logout();
               Navigator.pushReplacement(
                 context,
@@ -80,10 +64,7 @@ class _MainHomePageState extends State<MainHomePage> {
                     MaterialPageRoute(
                       builder: (_) => ChatPage(contactName: contact),
                     ),
-                  ).then((_) {
-                    //wanneer je terug komt van ChatPage, herlaad nieuwe contacten
-                    loadContacts();
-                  });
+                  );
                 },
               );
             },
@@ -98,10 +79,7 @@ class _MainHomePageState extends State<MainHomePage> {
             context,
             MaterialPageRoute(
               builder: (_) => const NewContactPage()),
-          ).then((_) {
-            //herlaad contactenlijst na nieuwe chat
-            loadContacts();
-          });
+          );
         },
       ),
     );
