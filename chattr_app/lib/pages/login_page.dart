@@ -57,7 +57,7 @@ class _LoginPageState extends State<LoginPage> {
     _gebruikersnaamController.text.trim(),
   );
 
-  //aanpassing door Audrey:
+  //chats laden
   final chatState = context.read<ChatState>();
   chatState.setCurrentUser(_gebruikersnaamController.text.trim());
   await chatState.loadAllChatsForUsers();
