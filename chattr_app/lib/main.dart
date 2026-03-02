@@ -1,5 +1,6 @@
 // hier komen alle routes tussen verschillende schermen te staan en functies etc die voor alles gelden
 
+import 'package:chattr_app/pages/personalisatie.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -95,6 +96,8 @@ class MyApp extends StatelessWidget {
           '/register': (context) => RegisterPage(),
           '/home': (context) => MainHomePage(),
           '/new_contact': (context) => NewContactPage(),
+          '/start': (context) => StartPage(),
+          '/personalisatie': (context) => PersonalisatiePage()
         }
       ),
     );

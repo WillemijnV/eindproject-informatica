@@ -4,8 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import 'package:chattr_app/app_state.dart';
-import 'start_page.dart';
 import 'chat_page.dart';
+import 'instellingen.dart';
 
 class MainHomePage extends StatefulWidget {
   @override
@@ -30,14 +30,15 @@ class _MainHomePageState extends State<MainHomePage> {
         actions: [
           TextButton.icon(
             onPressed: () {
-              state.logout();
-              Navigator.pushReplacement(
+              Navigator.push(
                 context,
-                MaterialPageRoute(builder: (_) => StartPage()),
+                MaterialPageRoute(
+                  builder: (context) => Instellingen()
+                ),
               );
             },
-            icon: Icon(Icons.logout, color: Colors.amber),
-            label: Text('Uitloggen', style: TextStyle(color: Colors.amber))
+            icon: Icon(Icons.settings, color: Colors.amber),
+            label: Text('Instellingen', style: TextStyle(color: Colors.amber))
           ),
         ],
       ),
