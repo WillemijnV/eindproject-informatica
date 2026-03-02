@@ -61,10 +61,9 @@ Future<List<String>> getAvailableContacts(BuildContext context) async {
 
   if (currentUser == null) return [];
 
-  final users = await getAllUsers();
-  final allUsers = users.map((u) => u['username'].toString()).toList();
+  final allUsers = await fetchAllUsernames();
+  final activeContacts = chatState.getActiveContacts();
 
-  //Filter huidige gebruiker eruit
-  final available = allUsers.where((u) => u != currentUser).toList();
-  return available;
+  return allUsers
+    .where((u) => u != currentUser && !activeContacts.contains(u)).toList();
 }

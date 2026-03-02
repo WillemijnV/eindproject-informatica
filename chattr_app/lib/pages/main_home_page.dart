@@ -4,20 +4,29 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import 'package:chattr_app/app_state.dart';
+<<<<<<< HEAD
 import 'chat_page.dart';
 import 'instellingen.dart';
+=======
+import 'package:chattr_app/chat_state.dart';
+import 'start_page.dart';
+import 'chat_page.dart';
+import 'new_contact_page.dart';
+
+>>>>>>> 94d45793166b8d240297689dbee5afd37d098793
 
 class MainHomePage extends StatefulWidget {
+  const MainHomePage({super.key});
   @override
   State<MainHomePage> createState() => _MainHomePageState();
 }
 
 class _MainHomePageState extends State<MainHomePage> {
-  List<String> contacts = ['Anna', 'Bram', 'Clara'];
-
   @override
   Widget build(BuildContext context) {
     final state = context.watch<AppState>();
+    final chatState = context.watch<ChatState>();
+    final contacts = chatState.getActiveContacts();
 
     return Scaffold(
       appBar: AppBar(
@@ -30,7 +39,13 @@ class _MainHomePageState extends State<MainHomePage> {
         actions: [
           TextButton.icon(
             onPressed: () {
+<<<<<<< HEAD
               Navigator.push(
+=======
+              context.read<ChatState>().clearChats();
+              state.logout();
+              Navigator.pushReplacement(
+>>>>>>> 94d45793166b8d240297689dbee5afd37d098793
                 context,
                 MaterialPageRoute(
                   builder: (context) => Instellingen()
@@ -43,27 +58,28 @@ class _MainHomePageState extends State<MainHomePage> {
         ],
       ),
 
-      body: ListView.builder(
-        itemCount: contacts.length,
-        itemBuilder: (context, index) {
-          return ListTile(
-            leading: CircleAvatar(
-              child: Text(contacts[index][0]),
-            ),
-            title: Text(contacts[index]),
-            onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (_) => ChatPage(
-                    contactName: contacts[index],
-                  ),
+      body: contacts.isEmpty
+          ? const Center(child: Text('Geen contacten beschikbaar'))
+          : ListView.builder(
+            itemCount: contacts.length,
+            itemBuilder: (context, index) {
+              final contact = contacts[index];
+              return ListTile(
+                leading: CircleAvatar(
+                  child: Text(contact[0]),
                 ),
+                title: Text(contact),
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => ChatPage(contactName: contact),
+                    ),
+                  );
+                },
               );
             },
-          );
-        },
-      ),
+          ),
 
       //nieuwe chat button
       floatingActionButton: FloatingActionButton(
@@ -73,11 +89,9 @@ class _MainHomePageState extends State<MainHomePage> {
           Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (_) => ChatPage(contactName: "Nieuwe chat"),
-            ),
+              builder: (_) => const NewContactPage()),
           );
         },
-
       ),
     );
   }
