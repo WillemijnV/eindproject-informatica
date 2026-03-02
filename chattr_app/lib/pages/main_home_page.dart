@@ -4,16 +4,9 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import 'package:chattr_app/app_state.dart';
-<<<<<<< HEAD
 import 'chat_page.dart';
 import 'instellingen.dart';
-=======
-import 'package:chattr_app/chat_state.dart';
-import 'start_page.dart';
-import 'chat_page.dart';
 import 'new_contact_page.dart';
-
->>>>>>> 94d45793166b8d240297689dbee5afd37d098793
 
 class MainHomePage extends StatefulWidget {
   const MainHomePage({super.key});
@@ -39,18 +32,11 @@ class _MainHomePageState extends State<MainHomePage> {
         actions: [
           TextButton.icon(
             onPressed: () {
-<<<<<<< HEAD
-              Navigator.push(
-=======
-              context.read<ChatState>().clearChats();
-              state.logout();
-              Navigator.pushReplacement(
->>>>>>> 94d45793166b8d240297689dbee5afd37d098793
-                context,
+                context;
                 MaterialPageRoute(
                   builder: (context) => Instellingen()
                 ),
-              );
+              ),
             },
             icon: Icon(Icons.settings, color: Colors.amber),
             label: Text('Instellingen', style: TextStyle(color: Colors.amber))
