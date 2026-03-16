@@ -1,5 +1,6 @@
 // hier komt het hoofdscherm wanneer je ingelogd bent en blijft, je ziet hier een contactenlijst etc.
 
+import 'package:chattr_app/chat_state.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -32,11 +33,12 @@ class _MainHomePageState extends State<MainHomePage> {
         actions: [
           TextButton.icon(
             onPressed: () {
-                context;
+                Navigator.push(
+                context,
                 MaterialPageRoute(
                   builder: (context) => Instellingen()
-                );
-              ),
+                ),
+              );
             },
             icon: Icon(Icons.settings, color: Colors.amber),
             label: Text('Instellingen', style: TextStyle(color: Colors.amber))
