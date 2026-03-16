@@ -33,6 +33,7 @@ class _MainHomePageState extends State<MainHomePage> {
         actions: [
           TextButton.icon(
             onPressed: () {
+              Navigator.push(
                 context,
                 MaterialPageRoute(
                   builder: (context) => Instellingen()

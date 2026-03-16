@@ -8,7 +8,7 @@ import 'package:chattr_app/chat_state.dart';
 
 class ChatPage extends StatefulWidget {
   final String contactName;
-  const ChatPage({required this.contactName, Key? key}) : super(key: key);
+  const ChatPage({required this.contactName, super.key});
 
   @override
   State<ChatPage> createState() => _ChatPageState();
