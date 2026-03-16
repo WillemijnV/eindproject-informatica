@@ -8,7 +8,7 @@ import 'package:chattr_app/chat_state.dart';
 
 class ChatPage extends StatefulWidget {
   final String contactName;
-  const ChatPage({required this.contactName, Key? key}) : super(key: key);
+  const ChatPage({required this.contactName, super.key});
 
   @override
   State<ChatPage> createState() => _ChatPageState();
@@ -29,7 +29,6 @@ class _ChatPageState extends State<ChatPage> {
     chatState.ensureChatExists(widget.contactName);
     chatState.fetchMessages(widget.contactName);
 
-<<<<<<< HEAD
     _pollingTimer = Timer.periodic(const Duration(seconds: 3), (_) async {
       await chatState.fetchMessages(widget.contactName);
     });
@@ -41,12 +40,10 @@ class _ChatPageState extends State<ChatPage> {
         });
       }
     });
-=======
     _pollingTimer = Timer.periodic(
       const Duration(seconds: 3),
       (_) => chatState.fetchMessages(widget.contactName),
     );
->>>>>>> 94d45793166b8d240297689dbee5afd37d098793
   }
 
   @override
