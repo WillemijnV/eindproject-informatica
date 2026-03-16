@@ -64,8 +64,11 @@ class _RegisterPageState extends State<RegisterPage> {
   if (!_formKey.currentState!.validate()) return;
 
   final error = await registerUser(
+    _naamController.text.trim(),
     _gebruikersnaamController.text.trim(),
     _wachtwoordController.text,
+    _emailController.text.trim(),
+    _telefoonController.text.trim(),
   );
 
   if (error != null) {

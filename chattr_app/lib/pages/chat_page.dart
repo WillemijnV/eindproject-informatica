@@ -125,11 +125,11 @@ class _ChatPageState extends State<ChatPage> {
           // Invoer veld
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 8),
-            color: Colors.grey.shade200,
+            color: Color.fromARGB(255, 19, 18, 75),
             child: Row(
               children: [
                 IconButton(
-                  icon: const Icon(Icons.emoji_emotions),
+                  icon: const Icon(Icons.emoji_emotions, color: Colors.amber),
                   onPressed: () {
                     FocusScope.of(context).unfocus();
                     setState(() {
@@ -148,7 +148,7 @@ class _ChatPageState extends State<ChatPage> {
                   ),
                 ),
                 IconButton(
-                  icon: const Icon(Icons.send),
+                  icon: const Icon(Icons.send, color: Colors.amber),
                   onPressed: () => _sendMessage(chatState),
                 ),
               ],
