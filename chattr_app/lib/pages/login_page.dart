@@ -64,7 +64,7 @@ class _LoginPageState extends State<LoginPage> {
 
   if (mounted) {
     Navigator.pushReplacementNamed(context, '/home');
-  };
+  }
 }
 
   @override

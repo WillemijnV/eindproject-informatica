@@ -35,7 +35,7 @@ class _MainHomePageState extends State<MainHomePage> {
                 context;
                 MaterialPageRoute(
                   builder: (context) => Instellingen()
-                ),
+                );
               ),
             },
             icon: Icon(Icons.settings, color: Colors.amber),
