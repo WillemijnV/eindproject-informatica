@@ -5,6 +5,7 @@ import 'package:emoji_picker_flutter/emoji_picker_flutter.dart';
 import 'package:flutter/foundation.dart' as foundation;
 
 import 'package:chattr_app/chat_state.dart';
+import 'package:image_picker/image_picker.dart';
 
 class ChatPage extends StatefulWidget {
   final String contactName;
@@ -17,6 +18,7 @@ class ChatPage extends StatefulWidget {
 class _ChatPageState extends State<ChatPage> {
   final TextEditingController _controller = TextEditingController();
   final FocusNode _focusNode = FocusNode();
+  final ImagePicker _picker = ImagePicker();
   Timer? _pollingTimer;
 
   bool _showEmojiPicker = false;
@@ -29,10 +31,6 @@ class _ChatPageState extends State<ChatPage> {
     chatState.ensureChatExists(widget.contactName);
     chatState.fetchMessages(widget.contactName);
 
-    _pollingTimer = Timer.periodic(const Duration(seconds: 3), (_) async {
-      await chatState.fetchMessages(widget.contactName);
-    });
-
     _focusNode.addListener(() {
       if (_focusNode.hasFocus) {
         setState(() {
@@ -41,7 +39,7 @@ class _ChatPageState extends State<ChatPage> {
       }
     });
     _pollingTimer = Timer.periodic(
-      const Duration(seconds: 3),
+      const Duration(seconds: 5),
       (_) => chatState.fetchMessages(widget.contactName),
     );
   }
@@ -71,6 +69,20 @@ class _ChatPageState extends State<ChatPage> {
     );
 
     _controller.clear();
+  }
+
+  Future<void> _sendImage(ChatState chatState) async {
+    final XFile? image = await _picker.pickImage(source: ImageSource.gallery);
+    if (image == null) return;
+
+    final bytes = await image.readAsBytes();
+    final filename = image.name;
+
+    await chatState.sendImageWeb(
+      widget.contactName,
+      filename,
+      bytes,
+    );
   }
 
   @override
@@ -106,14 +118,17 @@ class _ChatPageState extends State<ChatPage> {
                           : Colors.grey.shade700,
                       borderRadius: BorderRadius.circular(12),
                     ),
-                    child: Text(
-                      message.text,
-                      style: TextStyle(
-                        color: message.isMe
-                            ? Colors.black
-                            : Colors.white,
-                      ),
-                    ),
+                    child: message.text != null
+                        ? Text(message.text!)
+                        : (message.image != null
+                            ? Image.network(
+                                '${ChatState.baseUrl}/uploads/${message.image}',
+                                width: 300,
+                                height: 200,
+                                fit: BoxFit.cover,
+                            )
+                            : const SizedBox()
+                          ),
                   ),
                 );
               },
@@ -136,6 +151,10 @@ class _ChatPageState extends State<ChatPage> {
                       _showEmojiPicker = !_showEmojiPicker;
                     });
                   },
+                ),
+                IconButton(
+                  icon: const Icon(Icons.photo_camera, color: Colors.amber),
+                  onPressed: () => _sendImage(chatState),
                 ),
                 Expanded(
                   child: TextField(

@@ -5,12 +5,14 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 
 class Message {
-  final String text;
+  final String? text;
+  final String? image;
   final String user;
   final bool isMe;
 
   Message({
     required this.text,
+    required this.image,
     required this.user,
     required this.isMe,
   });
@@ -18,6 +20,7 @@ class Message {
   factory Message.fromJson(Map<String, dynamic> json, String myName) {
     return Message(
       text: json['text'],
+      image: json['image'],
       user: json['user'],
       isMe: json['user'] == myName,
     );
@@ -126,6 +129,24 @@ class ChatState extends ChangeNotifier {
 
     if (response.statusCode == 201) {
       _knownContacts.add(contactName);
+      _chats.putIfAbsent(contactName, () => []);
+      await fetchMessages(contactName);
+    }
+  }
+
+  Future<void> sendImageWeb(String contactName, String filename, List<int> bytes) async {
+    if (currentUser == null) return;
+
+    final uri = Uri.parse('$baseUrl/images');
+    final request = http.MultipartRequest('POST', uri);
+
+    request.fields['user'] = currentUser!;
+    request.fields['to'] = contactName;
+    request.files.add(http.MultipartFile.fromBytes('image', bytes, filename: filename));
+
+    final response = await request.send();
+
+    if (response.statusCode == 201) {
       _chats.putIfAbsent(contactName, () => []);
       await fetchMessages(contactName);
     }
