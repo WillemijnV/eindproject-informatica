@@ -1,5 +1,7 @@
 // hier komt het inlogscherm
 
+// ignore_for_file: use_build_context_synchronously
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:chattr_app/app_state.dart';
@@ -64,7 +66,7 @@ class _LoginPageState extends State<LoginPage> {
 
   if (mounted) {
     Navigator.pushReplacementNamed(context, '/home');
-  };
+  }
 }
 
   @override

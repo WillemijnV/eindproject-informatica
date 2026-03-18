@@ -3,6 +3,7 @@
 import 'package:flutter/material.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import 'package:chattr_app/services/crypto_service.dart';
 
 class Message {
   final String text;
@@ -41,7 +42,7 @@ class ChatState extends ChangeNotifier {
     _chats.putIfAbsent(contactName, () => []);
   }
 
-  List<Message> getMessage(String contactName) {
+  List<Message> getMessages(String contactName) {
     return _chats[contactName] ?? [];
   }
 
@@ -110,16 +111,23 @@ class ChatState extends ChangeNotifier {
     }
   }
 
-  Future<void> sendMessage(String contactName, String text) async {
-    if (currentUser == null) return;
+  Future<void> sendMessage(
+    String contactName, 
+    String text,
+  ) async {
+    if (currentUser == null || currentUser!.isEmpty) return;
+
+    final key = await CryptoService.getOrCreateAESKey(contactName);
     
+    final encryptedData = await CryptoService.encryptMessage(text, key);
+
     final response = await http.post(
       Uri.parse('$baseUrl/messages'),
       headers: {'Content-Type': 'application/json'},
       body: jsonEncode({
         'user': currentUser,
         'to': contactName,
-        'text': text,
+        'text': jsonEncode(encryptedData),
         'timestamp': DateTime.now().toIso8601String(),
       }),
     );
@@ -128,6 +136,22 @@ class ChatState extends ChangeNotifier {
       _knownContacts.add(contactName);
       _chats.putIfAbsent(contactName, () => []);
       await fetchMessages(contactName);
+    }
+  }
+
+  Future<String> decryptMessage(Message message) async {
+    if (currentUser == null || currentUser!.isEmpty) return "Geen gebruiker";
+
+    final contactName = message.isMe ? message.user : message.user;
+    final key = await CryptoService.getOrCreateAESKey(contactName);
+
+    try {
+      final Map<String, String> encryptedData =
+          Map<String, String>.from(jsonDecode(message.text));
+      final decrypted = await CryptoService.decryptMessage(encryptedData, key);
+      return decrypted;
+    } catch (e) {
+      return "Decryptie fout";
     }
   }
 
