@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../services/auth_service.dart';
+import '../services/crypto_service.dart';
 
 class RegisterPage extends StatefulWidget {
   const RegisterPage({super.key});
@@ -61,42 +62,45 @@ class _RegisterPageState extends State<RegisterPage> {
   }
 
   Future<void> _register() async {
-  if (!_formKey.currentState!.validate()) return;
+    if (!_formKey.currentState!.validate()) return;
 
-  final error = await registerUser(
-    _gebruikersnaamController.text.trim(),
-    _wachtwoordController.text,
-  );
+    final username = _gebruikersnaamController.text.trim();
+    final password = _wachtwoordController.text;
 
-  if (error != null) {
-    // Gebruikersnaam bestaat al
+    final error = await registerUser(username, password);
+
+    if (error != null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(error)),
+      );
+      return;
+    }
+
+    final keyPair = await CryptoService.getOrCreateRSAKeyPair(username);
+
+    final publicKey = await keyPair.extractPublicKey();
+
+    await CryptoService.saveUserPublicKey(username, publicKey);
+
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(error)),
+      const SnackBar(content: Text('Registratie gelukt!')),
     );
-    return;
+
+    Navigator.pushReplacementNamed(context, '/login');
   }
 
-  // Succes
-  ScaffoldMessenger.of(context).showSnackBar(
-    const SnackBar(content: Text('Registratie gelukt!')),
-  );
+  @override
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
 
-  Navigator.pushReplacementNamed(context, '/login');
-}
-
-
-    @override
-    Widget build(BuildContext context) {
-      final colors = Theme.of(context).colorScheme;
-
-      return Scaffold(
-        appBar: AppBar(
-          title: const Text('Registreren'),
-          backgroundColor: Colors.transparent,
-          elevation: 0,
-        ),
-        body: Center(
-          child: SingleChildScrollView(
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Registreren'),
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+      ),
+      body: Center(
+        child: SingleChildScrollView(
           padding: const EdgeInsets.all(24),
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 400),
@@ -116,7 +120,6 @@ class _RegisterPageState extends State<RegisterPage> {
 
                   const SizedBox(height: 30),
 
-                  // Volledige naam
                   TextFormField(
                     controller: _naamController,
                     decoration: const InputDecoration(
@@ -132,7 +135,6 @@ class _RegisterPageState extends State<RegisterPage> {
 
                   const SizedBox(height: 16),
 
-                  // Email
                   TextFormField(
                     controller: _emailController,
                     decoration: const InputDecoration(
@@ -148,7 +150,6 @@ class _RegisterPageState extends State<RegisterPage> {
 
                   const SizedBox(height: 16),
 
-                  // Telefoon
                   TextFormField(
                     controller: _telefoonController,
                     decoration: const InputDecoration(
@@ -160,11 +161,10 @@ class _RegisterPageState extends State<RegisterPage> {
                         value == null || value.isEmpty
                             ? "Vul je telefoonnummer in"
                             : null,
-                 ),
+                  ),
 
                   const SizedBox(height: 16),
 
-                  // Gebruikersnaam
                   TextFormField(
                     controller: _gebruikersnaamController,
                     decoration: const InputDecoration(
@@ -180,7 +180,6 @@ class _RegisterPageState extends State<RegisterPage> {
 
                   const SizedBox(height: 16),
 
-                  // Wachtwoord
                   TextFormField(
                     controller: _wachtwoordController,
                     obscureText: _verbergWachtwoord,

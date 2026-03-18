@@ -12,9 +12,13 @@ dependencies:
   english_words: ^4.0.0
   provider: ^6.1.5
   cryptography: ^2.7.0
+<<<<<<< HEAD
   shared_preferences: ^2.2.2
   http: ^1.1.0
   emoji_picker_flutter: ^1.6.3
+=======
+  shared_preferences: ^2.2.0
+>>>>>>> e56979a (End-to-end versleuteling)
 
 dev_dependencies:
   flutter_test:

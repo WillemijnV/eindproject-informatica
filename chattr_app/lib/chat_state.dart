@@ -1,5 +1,4 @@
-//chat status, berichten
-
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
@@ -54,6 +53,53 @@ class ChatState extends ChangeNotifier {
     );
 
     if (response.statusCode != 200) return;
+
+  final Map<String, List<EncryptedMessage>> _chats = {};
+
+  List<EncryptedMessage> getMessages(String contactName) {
+    return _chats[contactName] ?? [];
+  }
+
+  Future<void> sendMessage(
+    String contactName,
+    String text,
+    String currentUser,
+  ) async {
+
+    final SimplePublicKey? receiverPublicKey =
+      await CryptoService.getUserPublicKey(contactName);
+
+    final senderPublicKey = await CryptoService.getUserPublicKey(currentUser);
+
+    if (receiverPublicKey == null || senderPublicKey == null) {
+      throw Exception("Public key van niet gevonden");
+    }
+
+    final aesKey = await CryptoService.aes.newSecretKey();
+
+    final encryptedMessage =
+        await CryptoService.aes.encrypt(
+      utf8.encode(text),
+      secretKey: aesKey,
+    );
+
+    final aesKeyBytes = await aesKey.extractBytes();
+
+    final encryptedKeyBytes = 
+        await CryptoService.rsa.encrypt(
+      aesKeyBytes,
+      publicKey: senderPublicKey,
+    );
+
+    _chats.putIfAbsent(contactName, () => []);
+
+    _chats[contactName]!.add(
+      EncryptedMessage(
+        encryptedData: encryptedMessage,
+        encryptedKey: encryptedKeyBytes,
+        isMe: true,
+      ),
+    );
 
     final List data = jsonDecode(response.body);
 
@@ -158,5 +204,38 @@ class ChatState extends ChangeNotifier {
   void clearChats() {
     _chats.clear();
     notifyListeners();
+  Future<String> decryptMessage(
+    EncryptedMessage message,
+    String currentUser,
+  ) async {
+
+    final keyPair = 
+        await CryptoService.getOrCreateRSAKeyPair(currentUser);
+
+    final privateKeyBytes = 
+        await keyPair.extractPrivateKeyBytes();
+
+    final publicKey =
+        await keyPair.extractPublicKey();
+    
+    final aesKeyBytes = 
+        await CryptoService.rsa.decrypt(
+      message.encryptedKey,
+      privateKey: SimpleKeyPairData(
+          privateKeyBytes,
+          publicKey: publicKey,
+          type: KeyPairType.rsa,
+        ),
+      );
+
+    final aesKey = SecretKey(aesKeyBytes);
+
+    final decrypted = 
+        await CryptoService.aes.decrypt(
+      message.encryptedData,
+      secretKey: aesKey,
+    );
+
+    return utf8.decode(decrypted);
   }
 }
