@@ -1,7 +1,8 @@
-import 'dart:convert';
+//chat status, berichten
+
 import 'package:flutter/material.dart';
+import 'dart:convert';
 import 'package:http/http.dart' as http;
-import 'package:chattr_app/services/crypto_service.dart';
 
 class Message {
   final String? text;
@@ -30,9 +31,7 @@ class ChatState extends ChangeNotifier {
   final Map<String, List<Message>> _chats = {};
   final Set<String> _knownContacts = {};
 
-  static const String baseUrl =
-      'https://729bd5b9-d330-416c-bbbf-87ce6cdd04a7-00-1kstgmc8ftol5.worf.replit.dev:5000';
-
+  static const String baseUrl = 'https://729bd5b9-d330-416c-bbbf-87ce6cdd04a7-00-1kstgmc8ftol5.worf.replit.dev:5000';
   String? currentUser;
 
   void setCurrentUser(String username) {
@@ -45,15 +44,16 @@ class ChatState extends ChangeNotifier {
     _chats.putIfAbsent(contactName, () => []);
   }
 
-  List<Message> getMessages(String contactName) {
+  List<Message> getMessage(String contactName) {
     return _chats[contactName] ?? [];
   }
 
   Future<void> loadAllChatsForUsers() async {
     if (currentUser == null) return;
 
-    final response =
-        await http.get(Uri.parse('$baseUrl/messages/$currentUser'));
+    final response = await http.get(
+      Uri.parse('$baseUrl/messages/$currentUser'),
+    );
 
     if (response.statusCode != 200) return;
 
@@ -72,24 +72,57 @@ class ChatState extends ChangeNotifier {
         Message.fromJson(m, currentUser!),
       );
     }
-
     notifyListeners();
+  }
+
+  //actieve contacten ophalen
+  List<String> getActiveContacts() {
+    return _chats.keys.toList();
+  }
+
+  Future<List<String>> getNewContacts() async {
+    if (currentUser == null) return [];
+    
+    final allUsersResponse = await http.get(Uri.parse('$baseUrl/users'));
+    if (allUsersResponse.statusCode != 200) return [];
+
+    final List<String> allUsers = List<String>.from(jsonDecode(allUsersResponse.body));
+
+    final List<String> newContacts = allUsers
+      .where((u) => u != currentUser && !_chats.containsKey(u))
+      .cast<String>()
+      .toList();
+
+    return newContacts;
+  }
+
+  Future<void> fetchMessages(String contactName) async {
+    final response = await http.get(Uri.parse('$baseUrl/messages'));
+
+    if (response.statusCode == 200) {
+      final List data = jsonDecode(response.body) as List;
+
+      _chats[contactName] = data
+        .where((m) => 
+          (m['user']?.toString() == currentUser && m['to']?.toString() == contactName) ||
+          (m['user']?.toString() == contactName && m['to']?.toString() == currentUser))
+        .map<Message>((m) => Message.fromJson(m, currentUser!))
+        .toList();
+
+      notifyListeners();
+    }
   }
 
   Future<void> sendMessage(String contactName, String text) async {
     if (currentUser == null) return;
-
-    final key = await CryptoService.getOrCreateAESKey(contactName);
-
-    final encryptedData = await CryptoService.encrypt(text, key);
-
+    
     final response = await http.post(
       Uri.parse('$baseUrl/messages'),
       headers: {'Content-Type': 'application/json'},
       body: jsonEncode({
         'user': currentUser,
         'to': contactName,
-        'text': jsonEncode(encryptedData), // 🔐 encrypted
+        'text': text,
         'timestamp': DateTime.now().toIso8601String(),
       }),
     );
@@ -99,61 +132,6 @@ class ChatState extends ChangeNotifier {
       _chats.putIfAbsent(contactName, () => []);
       await fetchMessages(contactName);
     }
-  }
-
-  Future<void> fetchMessages(String contactName) async {
-    final response = await http.get(Uri.parse('$baseUrl/messages'));
-
-    if (response.statusCode != 200) return;
-
-    final List data = jsonDecode(response.body);
-
-    _chats[contactName] = data
-        .where((m) =>
-            (m['user'] == currentUser && m['to'] == contactName) ||
-            (m['user'] == contactName && m['to'] == currentUser))
-        .map<Message>((m) => Message.fromJson(m, currentUser!))
-        .toList();
-
-    notifyListeners();
-  }
-
-  Future<String> decryptMessage(Message message) async {
-    if (currentUser == null) return "Geen gebruiker";
-
-    final contactName = message.user;
-
-    final key = await CryptoService.getOrCreateAESKey(contactName);
-
-    try {
-      final Map<String, String> encryptedData =
-          Map<String, String>.from(jsonDecode(message.text!));
-
-      final decrypted =
-          await CryptoService.decrypt(encryptedData, key);
-
-      return decrypted;
-    } catch (e) {
-      return "Decryptie fout";
-    }
-  }
-
-  List<String> getActiveContacts() {
-    return _chats.keys.toList();
-  }
-
-  Future<List<String>> getNewContacts() async {
-    if (currentUser == null) return [];
-
-    final res = await http.get(Uri.parse('$baseUrl/users'));
-    if (res.statusCode != 200) return [];
-
-    final List<String> allUsers =
-        List<String>.from(jsonDecode(res.body));
-
-    return allUsers
-        .where((u) => u != currentUser && !_chats.containsKey(u))
-        .toList();
   }
 
   Future<void> sendImageWeb(String contactName, String filename, List<int> bytes) async {

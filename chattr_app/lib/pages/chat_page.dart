@@ -1,8 +1,9 @@
-//herbruikbare chatpagina voor het chatten met contacten
-
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:emoji_picker_flutter/emoji_picker_flutter.dart';
+import 'package:flutter/foundation.dart' as foundation;
+
 import 'package:chattr_app/chat_state.dart';
 import 'package:image_picker/image_picker.dart';
 
@@ -16,7 +17,6 @@ class ChatPage extends StatefulWidget {
 
 class _ChatPageState extends State<ChatPage> {
   final TextEditingController _controller = TextEditingController();
-  
   final FocusNode _focusNode = FocusNode();
   final ImagePicker _picker = ImagePicker();
   Timer? _pollingTimer;
@@ -46,7 +46,9 @@ class _ChatPageState extends State<ChatPage> {
 
   @override
   void dispose() {
+    _pollingTimer?.cancel();
     _controller.dispose();
+    _focusNode.dispose();
     super.dispose();
   }
 
@@ -86,7 +88,7 @@ class _ChatPageState extends State<ChatPage> {
   @override
   Widget build(BuildContext context) {
     final chatState = context.watch<ChatState>();
-    final messages = chatState.getMessages(widget.contactName);
+    final messages = chatState.getMessage(widget.contactName);
 
     return Scaffold(
       appBar: AppBar(
@@ -102,8 +104,8 @@ class _ChatPageState extends State<ChatPage> {
 
                 return Align(
                   alignment: message.isMe
-                    ? Alignment.centerRight
-                    : Alignment.centerLeft,
+                      ? Alignment.centerRight
+                      : Alignment.centerLeft,
                   child: Container(
                     margin: const EdgeInsets.symmetric(
                       vertical: 4,
@@ -112,28 +114,9 @@ class _ChatPageState extends State<ChatPage> {
                     padding: const EdgeInsets.all(10),
                     decoration: BoxDecoration(
                       color: message.isMe
-                        ? Colors.amber
-                        : Colors.grey.shade700,
+                          ? Colors.amber
+                          : Colors.grey.shade700,
                       borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: FutureBuilder<String>(
-                      future: chatState.decryptMessage(
-                        message,
-                      ),
-                      builder: (context, snapshot) {
-                        if (!snapshot.hasData) {
-                          return const Text("Decrypting...");
-                        }
-
-                        return Text(
-                          snapshot.data!,
-                          style: TextStyle(
-                            color: message.isMe
-                                ? Colors.black
-                                : Colors.white,
-                          ),
-                        );
-                      },
                     ),
                     child: message.text != null
                         ? Text(message.text!)
@@ -152,10 +135,6 @@ class _ChatPageState extends State<ChatPage> {
             ),
           ),
 
-          Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: Row(
-              children: [
           const Divider(height: 1),
 
           // Invoer veld
@@ -180,25 +159,13 @@ class _ChatPageState extends State<ChatPage> {
                 Expanded(
                   child: TextField(
                     controller: _controller,
+                    focusNode: _focusNode,
                     decoration: const InputDecoration(
                       hintText: "Typ hier je bericht...",
+                      border: InputBorder.none,
                     ),
                   ),
                 ),
-                const SizedBox(width: 8),
-
-                ElevatedButton(
-                  onPressed: () async {
-                    if (_controller.text.trim().isEmpty) return;
-
-                    await chatState.sendMessage(
-                      widget.contactName,
-                      _controller.text.trim(),
-                    );
-
-                    _controller.clear();
-                  },
-                  child: const Icon(Icons.send),
                 IconButton(
                   icon: const Icon(Icons.send, color: Colors.amber),
                   onPressed: () => _sendMessage(chatState),
@@ -206,9 +173,25 @@ class _ChatPageState extends State<ChatPage> {
               ],
             ),
           ),
+
+          // Emoji Picker
+          if (_showEmojiPicker)
+            SizedBox(
+              height: 250,
+              child: EmojiPicker(
+                onEmojiSelected: _onEmojiSelected,
+                config: Config(
+                  columns: 7,
+                  emojiSizeMax: 32 *
+                      (foundation.defaultTargetPlatform ==
+                              TargetPlatform.iOS
+                          ? 1.30
+                          : 1.0),
+                ),
+              ),
+            ),
         ],
       ),
     );
   }
 }
-    
