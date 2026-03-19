@@ -4,12 +4,14 @@ import 'package:http/http.dart' as http;
 import 'package:chattr_app/services/crypto_service.dart';
 
 class Message {
-  final String text;
+  final String? text;
+  final String? image;
   final String user;
   final bool isMe;
 
   Message({
     required this.text,
+    required this.image,
     required this.user,
     required this.isMe,
   });
@@ -17,6 +19,7 @@ class Message {
   factory Message.fromJson(Map<String, dynamic> json, String myName) {
     return Message(
       text: json['text'],
+      image: json['image'],
       user: json['user'],
       isMe: json['user'] == myName,
     );
@@ -124,7 +127,7 @@ class ChatState extends ChangeNotifier {
 
     try {
       final Map<String, String> encryptedData =
-          Map<String, String>.from(jsonDecode(message.text));
+          Map<String, String>.from(jsonDecode(message.text!));
 
       final decrypted =
           await CryptoService.decrypt(encryptedData, key);
@@ -151,6 +154,24 @@ class ChatState extends ChangeNotifier {
     return allUsers
         .where((u) => u != currentUser && !_chats.containsKey(u))
         .toList();
+  }
+
+  Future<void> sendImageWeb(String contactName, String filename, List<int> bytes) async {
+    if (currentUser == null) return;
+
+    final uri = Uri.parse('$baseUrl/images');
+    final request = http.MultipartRequest('POST', uri);
+
+    request.fields['user'] = currentUser!;
+    request.fields['to'] = contactName;
+    request.files.add(http.MultipartFile.fromBytes('image', bytes, filename: filename));
+
+    final response = await request.send();
+
+    if (response.statusCode == 201) {
+      _chats.putIfAbsent(contactName, () => []);
+      await fetchMessages(contactName);
+    }
   }
 
   void clearChats() {

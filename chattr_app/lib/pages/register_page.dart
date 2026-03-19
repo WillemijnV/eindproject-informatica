@@ -67,7 +67,13 @@ class _RegisterPageState extends State<RegisterPage> {
     final username = _gebruikersnaamController.text.trim();
     final password = _wachtwoordController.text;
 
-    final error = await registerUser(username, password);
+    final error = await registerUser(
+    _naamController.text.trim(),
+    _gebruikersnaamController.text.trim(),
+    _wachtwoordController.text,
+    _emailController.text.trim(),
+    _telefoonController.text.trim(),
+  );
 
     if (error != null) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -77,6 +83,7 @@ class _RegisterPageState extends State<RegisterPage> {
     }
 
     await CryptoService.getOrCreateAESKey(username);
+
 
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text('Registratie gelukt!')),

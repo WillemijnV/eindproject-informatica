@@ -4,13 +4,22 @@ import 'package:http/http.dart' as http;
 const String baseUrl =
   'https://729bd5b9-d330-416c-bbbf-87ce6cdd04a7-00-1kstgmc8ftol5.worf.replit.dev:5000';
 
-Future<String?> registerUser(String username, String password) async {
+Future<String?> registerUser(
+  String name,
+  String username, 
+  String password,
+  String email,
+  String phone
+  ) async {
   final response = await http.post(
     Uri.parse('$baseUrl/register'),
     headers: {'Content-Type': 'application/json'},
     body: jsonEncode({
+      'name': name,
       'username': username,
       'password': password,
+      'email': email,
+      'phone': phone,
     }),
   );
 

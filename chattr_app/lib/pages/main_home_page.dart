@@ -1,12 +1,12 @@
 // hier komt het hoofdscherm wanneer je ingelogd bent en blijft, je ziet hier een contactenlijst etc.
 
+import 'package:chattr_app/chat_state.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import 'package:chattr_app/app_state.dart';
 import 'chat_page.dart';
 import 'instellingen.dart';
-import 'package:chattr_app/chat_state.dart';
 import 'new_contact_page.dart';
 
 class MainHomePage extends StatefulWidget {
