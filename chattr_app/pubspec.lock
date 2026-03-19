@@ -57,7 +57,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.9.0"
-<<<<<<< HEAD
+  cryptography_flutter:
+    dependency: "direct main"
+    description:
+      name: cryptography_flutter
+      sha256: d1c7e7a31a072d63b27ce0537b89868f9bda9188f2b1651ae728a295762921d4
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.3.4"
   emoji_picker_flutter:
     dependency: "direct main"
     description:
@@ -66,8 +73,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.6.4"
-=======
->>>>>>> e56979a (End-to-end versleuteling)
   english_words:
     dependency: "direct main"
     description:
@@ -123,7 +128,6 @@ packages:
     description: flutter
     source: sdk
     version: "0.0.0"
-<<<<<<< HEAD
   http:
     dependency: "direct main"
     description:
@@ -140,8 +144,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "4.1.2"
-=======
->>>>>>> e56979a (End-to-end versleuteling)
   leak_tracker:
     dependency: transitive
     description:
@@ -274,17 +276,10 @@ packages:
     dependency: transitive
     description:
       name: shared_preferences_android
-<<<<<<< HEAD
       sha256: "8374d6200ab33ac99031a852eba4c8eb2170c4bf20778b3e2c9eccb45384fb41"
       url: "https://pub.dev"
     source: hosted
     version: "2.4.21"
-=======
-      sha256: cbc40be9be1c5af4dab4d6e0de4d5d3729e6f3d65b89d21e1815d57705644a6f
-      url: "https://pub.dev"
-    source: hosted
-    version: "2.4.20"
->>>>>>> e56979a (End-to-end versleuteling)
   shared_preferences_foundation:
     dependency: transitive
     description:

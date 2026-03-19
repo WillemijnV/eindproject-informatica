@@ -5,12 +5,9 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:chattr_app/app_state.dart';
-import '../services/auth_service.dart';
-<<<<<<< HEAD
 import 'package:chattr_app/chat_state.dart';
-=======
+import '../services/auth_service.dart';
 import '../services/crypto_service.dart';
->>>>>>> e56979a (End-to-end versleuteling)
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -57,7 +54,7 @@ class _LoginPageState extends State<LoginPage> {
     return;
   }
   
-  await CryptoService.getOrCreateKey(
+  await CryptoService.getOrCreateAESKey(
     _gebruikersnaamController.text.trim(),
   );
 

@@ -76,11 +76,7 @@ class _RegisterPageState extends State<RegisterPage> {
       return;
     }
 
-    final keyPair = await CryptoService.getOrCreateRSAKeyPair(username);
-
-    final publicKey = await keyPair.extractPublicKey();
-
-    await CryptoService.saveUserPublicKey(username, publicKey);
+    await CryptoService.getOrCreateAESKey(username);
 
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text('Registratie gelukt!')),
