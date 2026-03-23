@@ -66,8 +66,9 @@ class _LoginPageState extends State<LoginPage> {
 
   //chats laden
   final chatState = context.read<ChatState>();
-  chatState.setCurrentUser(_gebruikersnaamController.text.trim());
+  await chatState.setCurrentUser(_gebruikersnaamController.text.trim());
   await chatState.loadAllChatsForUsers();
+  await chatState.loadPinsFromServer();
 
   if (mounted) {
     Navigator.pushReplacementNamed(context, '/home');

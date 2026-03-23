@@ -85,6 +85,43 @@ class _ChatPageState extends State<ChatPage> {
     );
   }
 
+void _togglePin() async {
+  final chatState = context.read<ChatState>();
+  final hasPin = chatState.hasPin(widget.contactName);
+
+  if (!hasPin) {
+    final TextEditingController pinController = TextEditingController();
+    final pin = await showDialog<String>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text("Stel PIN in"),
+        content: TextField(
+          controller: pinController,
+          obscureText: true,
+          keyboardType: TextInputType.number,
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text("Annuleren")),
+          TextButton(
+            onPressed: () => Navigator.pop(context, pinController.text),
+            child: Text("Opslaan")),       
+        ],
+      ),
+    );
+
+    if (pin != null && pin.isNotEmpty) {
+      await chatState.setPin(widget.contactName, pin);
+    }
+
+    pinController.dispose();
+    
+  } else {
+    await chatState.removePin(widget.contactName);
+  }
+}
+
   @override
   Widget build(BuildContext context) {
     final chatState = context.watch<ChatState>();
@@ -93,6 +130,17 @@ class _ChatPageState extends State<ChatPage> {
     return Scaffold(
       appBar: AppBar(
         title: Text(widget.contactName),
+        actions: [
+          IconButton(
+            icon: Icon(
+              chatState.hasPin(widget.contactName)
+                  ? Icons.lock
+                  : Icons.lock_open,
+              color: Colors.amber,
+            ),
+            onPressed: _togglePin,
+          ),
+        ],
       ),
       body: Column(
         children: [
@@ -126,9 +174,8 @@ class _ChatPageState extends State<ChatPage> {
                                 width: 300,
                                 height: 200,
                                 fit: BoxFit.cover,
-                            )
-                            : const SizedBox()
-                          ),
+                              )
+                            : const SizedBox()),
                   ),
                 );
               },

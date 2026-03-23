@@ -31,14 +31,71 @@ class ChatState extends ChangeNotifier {
   final Map<String, List<Message>> _chats = {};
   final Set<String> _knownContacts = {};
 
+  final Map<String, String> _chatPins = {};
+
   static const String baseUrl = 'https://729bd5b9-d330-416c-bbbf-87ce6cdd04a7-00-1kstgmc8ftol5.worf.replit.dev:5000';
   String? currentUser;
 
-  void setCurrentUser(String username) {
+  Future<void> setCurrentUser(String username) async {
     currentUser = username;
     _chats.clear();
+
+    await loadPinsFromServer();
     notifyListeners();
   }
+
+  bool hasPin(String contact) => _chatPins.containsKey(contact);
+
+  Future<bool> checkPin(String contact, String pin) async {
+    if (!_chatPins.containsKey(contact)) return true; 
+
+    return _chatPins[contact] == pin;
+  }
+
+  Future<void> setPin(String contact, String pin) async {
+    if (currentUser == null) return;
+ 
+    _chatPins[contact] = pin;
+
+    await sendPinToServer(contact, pin);
+
+    notifyListeners();
+  }
+
+  Future<void> removePin(String contact) async {
+    _chatPins.remove(contact);
+    await sendPinToServer(contact, '');
+    notifyListeners();
+  }
+
+  Future<void> loadPinsFromServer() async {
+  if (currentUser == null) return;
+
+  final response = await http.get(Uri.parse('$baseUrl/pins/$currentUser'));
+  if (response.statusCode != 200) return;
+
+  final Map<String, dynamic> data = jsonDecode(response.body);
+  _chatPins.clear();
+  data.forEach((contact, pin) {
+    _chatPins[contact] = pin.toString();
+  });
+
+  notifyListeners();
+}
+
+Future<void> sendPinToServer(String contactName, String pin) async {
+  if (currentUser == null) return;
+
+  await http.post(
+    Uri.parse('$baseUrl/pins'),
+    headers: {'Content-Type': 'application/json'},
+    body: jsonEncode({
+      'user': currentUser,
+      'contact': contactName,
+      'pin': pin,
+    }),
+  );
+}
 
   void ensureChatExists(String contactName) {
     _chats.putIfAbsent(contactName, () => []);

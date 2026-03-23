@@ -43,13 +43,10 @@ class _MainHomePageState extends State<MainHomePage> {
               );
             },
             icon: Icon(Icons.settings, color: Colors.amber),
-            label: Text(
-              'Instellingen', 
-              style: TextStyle(color: Colors.amber),
-            ),
+            label: Text('Instellingen', style: TextStyle(color: Colors.amber)),
           ),
         ],
-      ),              
+      ),                  
 
       body: contacts.isEmpty
           ? const Center(child: Text('Geen contacten beschikbaar'))
@@ -61,18 +58,68 @@ class _MainHomePageState extends State<MainHomePage> {
                 leading: CircleAvatar(
                   child: Text(contact[0]),
                 ),
-                title: Text(contact),
-                onTap: () {
+                title: Row(
+                  children: [
+                    Text(contact),
+                    if (chatState.hasPin(contact))
+                      Padding(
+                        padding: const EdgeInsets.only(left: 6),
+                        child: Icon(
+                          Icons.lock,
+                          size: 16,
+                          color: Colors.amber,
+                        ),
+                      ),
+                  ],
+                ),
+                onTap: () async {
+                  await chatState.loadPinsFromServer();
+                  if (chatState.hasPin(contact)) {
+                    final pinController = TextEditingController();
+                    final enteredPin = await showDialog<String>(
+                      context: context,
+                      builder: (context) => AlertDialog(
+                        title: Text("Voer PIN in"),
+                        content: TextField(
+                          controller: pinController,
+                          obscureText: true,
+                          keyboardType: TextInputType.number,
+                          decoration: const InputDecoration(hintText: "PIN"),
+                        ),
+                        actions: [
+                          TextButton(
+                            onPressed: () => Navigator.pop(context),
+                            child: const Text("Annuleren"),
+                          ),
+                          TextButton(
+                            onPressed: () => Navigator.pop(context, pinController.text),
+                            child: const Text("OK"),
+                          ),
+                        ],
+                      ),
+                    );
+
+                    if (enteredPin == null) return;
+
+                    bool isCorrect = await chatState.checkPin(contact, enteredPin); 
+                    if (!isCorrect) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text("Foute PIN!")),
+                      );
+                      return; 
+                    }
+                  }
+
                   Navigator.push(
                     context,
                     MaterialPageRoute(
                       builder: (_) => ChatPage(contactName: contact),
                     ),
                   );
-                },
-              );
-            },
-          ),
+                },              
+             );
+           },
+         ), 
 
       //nieuwe chat button
       floatingActionButton: FloatingActionButton(

@@ -65,7 +65,6 @@ class _RegisterPageState extends State<RegisterPage> {
     if (!_formKey.currentState!.validate()) return;
 
     final username = _gebruikersnaamController.text.trim();
-    final password = _wachtwoordController.text;
 
     final error = await registerUser(
     _naamController.text.trim(),
