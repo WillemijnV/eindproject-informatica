@@ -81,9 +81,12 @@ class ChatState extends ChangeNotifier {
   });
 
   notifyListeners();
+
+  print("SERVER RESPONSE:   ${response.body}");
+  print("LOADED PINS: $_chatPins");
 }
 
-Future<void> sendPinToServer(String contactName, String pin) async {
+Future<void> sendPinToServer(String contact, String pin) async {
   if (currentUser == null) return;
 
   await http.post(
@@ -91,7 +94,7 @@ Future<void> sendPinToServer(String contactName, String pin) async {
     headers: {'Content-Type': 'application/json'},
     body: jsonEncode({
       'user': currentUser,
-      'contact': contactName,
+      'contact': contact,
       'pin': pin,
     }),
   );
@@ -114,9 +117,15 @@ Future<void> sendPinToServer(String contactName, String pin) async {
 
     if (response.statusCode != 200) return;
 
-    final List data = jsonDecode(response.body);
+    final data = jsonDecode(response.body);
 
-    _chats.clear();
+    _chatPins.clear();
+
+    if (data[currentUser] != null) {
+      data[currentUser].forEach((contact, pin) {
+        _chatPins[contact] = pin.toString();
+      });
+    }
 
     for (final m in data) {
       final from = m['user'];

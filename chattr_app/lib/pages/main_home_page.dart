@@ -62,6 +62,7 @@ class _MainHomePageState extends State<MainHomePage> {
                   children: [
                     Text(contact),
                     if (chatState.hasPin(contact))
+                      Icon(Icons.lock),
                       Padding(
                         padding: const EdgeInsets.only(left: 6),
                         child: Icon(

@@ -7,7 +7,7 @@ import 'package:provider/provider.dart';
 import 'package:chattr_app/app_state.dart';
 import 'package:chattr_app/chat_state.dart';
 import '../services/auth_service.dart';
-import '../services/crypto_service.dart';
+import 'main_home_page.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -36,188 +36,196 @@ class _LoginPageState extends State<LoginPage> {
 
   //Login functie
   Future<void> _login() async {
-  if (!_formKey.currentState!.validate()) return;
+    if (!_formKey.currentState!.validate()) return;
 
-  setState(() => _laden = true);
+    setState(() => _laden = true);
 
-  final success = await loginUser(
-    _gebruikersnaamController.text.trim(),
-    _wachtwoordController.text,
-  );
+    bool success = false;
+    try {
+      success = await loginUser(
+        _gebruikersnaamController.text.trim(),
+        _wachtwoordController.text,
+      );
+      print("loginUser returns: $success");
+    } catch (e) {
+      print("Fout bij loginUser: $e");
+    }
 
-  setState(() => _laden = false);
+    setState(() => _laden = false);
 
-  if (!success) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Onjuiste gebruikersnaam of wachtwoord')),
+    if (!success) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Onjuiste gebruikersnaam of wachtwoord')),
+      );
+      return;
+    }
+
+    // Succesvol ingelogd
+    context.read<AppState>().login(
+          "123", // later eventueel userId
+          _gebruikersnaamController.text.trim(),
+        );
+
+    //chats laden
+    try {
+      final chatState = context.read<ChatState>();
+      await chatState.setCurrentUser(_gebruikersnaamController.text.trim());
+      await chatState.loadAllChatsForUsers();
+    } catch (e) {
+      print("Fout bij laden chats: $e");
+    }
+
+    print("Navigating to MainHomePage...");
+    if (!mounted) return;
+    Navigator.pushReplacement(
+      context, 
+      MaterialPageRoute(builder: (_) => const MainHomePage()),
     );
-    return;
   }
-  
-  await CryptoService.getOrCreateAESKey(
-    _gebruikersnaamController.text.trim(),
-  );
 
-  // Succesvol ingelogd
-  context.read<AppState>().login(
-    "123", // later eventueel userId
-    _gebruikersnaamController.text.trim(),
-  );
+    @override
+    Widget build(BuildContext context) {
+      final colors = Theme.of(context).colorScheme;
 
-  //chats laden
-  final chatState = context.read<ChatState>();
-  await chatState.setCurrentUser(_gebruikersnaamController.text.trim());
-  await chatState.loadAllChatsForUsers();
-  await chatState.loadPinsFromServer();
-
-  if (mounted) {
-    Navigator.pushReplacementNamed(context, '/home');
-  }
-}
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = Theme.of(context).colorScheme;
-
-    return Scaffold(
-      appBar:AppBar(
-        title: const Text("Inloggen bij Chattr"),
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-      ),
-      body: Center(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(24),
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 400),
-            child: Form(
-              key: _formKey,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  const Text(
-                  "Welkom bij Chattr",
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-
-                const SizedBox(height: 10),
-
-                const Text(
-                  "Log in om the chatten",
-                  textAlign: TextAlign.center,
-                ),
-
-                const SizedBox(height: 30),
-
-                //Gebruikersnaam
-                TextFormField(
-                  controller: _gebruikersnaamController,
-                  decoration: const InputDecoration(
-                    labelText: "Gebruikersnaam",
-                    prefixIcon: Icon(Icons.person_outline),
-                    border: OutlineInputBorder(),
-                  ),
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return "Vul je gebruikersnaam in";
-                    }
-                    return null;
-                  },
-                ),
-
-                const SizedBox(height: 16),
-
-                //Wachtwoord
-                TextFormField(
-                  controller: _wachtwoordController,
-                  obscureText: _verbergWachtwoord,
-                  decoration: InputDecoration(
-                    labelText: "Wachtwoord",
-                    prefixIcon: const Icon(Icons.lock_outline),
-                    border: const OutlineInputBorder(),
-                    suffixIcon: IconButton(
-                      icon: Icon(
-                        _verbergWachtwoord
-                            ? Icons.visibility_off
-                            : Icons.visibility,                                                   
-                      ),
-                      onPressed: () {
-                        setState(() {
-                          _verbergWachtwoord = !_verbergWachtwoord;
-                        });
-                      },
-                    ),
-                  ),
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return "Vul je wachtwoord in";
-                    }
-                    return null;
-                  },
-                ),
-
-                const SizedBox(height: 10),
-
-                const SizedBox(height: 10),
-
-                Align(
-                  alignment: Alignment.centerRight,
-                  child: TextButton(
-                    onPressed: () {},
-                    child: const Text("Wachtwoord vergeten?"),
-                  ),
-                ),
-
-                const SizedBox(height: 20),
-
-                //Inlog knop
-                SizedBox(
-                  height: 48,
-                  child: ElevatedButton(
-                    onPressed: _laden ? null : _login,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: colors.primary,
-                      foregroundColor: colors.onPrimary,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                    ),
-                    child: _laden
-                        ? const SizedBox(
-                          width: 20,
-                          height: 20,
-                          child:
-                              CircularProgressIndicator(strokeWidth: 2),
-                          )
-                        : const Text("Inloggen"),
-                  ),
-                ),
-
-                const SizedBox(height: 20),
-
-                //Naar registreren
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
+      return Scaffold(
+        appBar:AppBar(
+          title: const Text("Inloggen bij Chattr"),
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+        ),
+        body: Center(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.all(24),
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 400),
+              child: Form(
+                key: _formKey,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    const Text("Nog geen account?"),
-                    TextButton(
-                      onPressed: () {
-                        Navigator.pushNamed(context, '/register');
-                      },
-                      child: const Text("Registreer"),
+                    const Text(
+                    "Welkom bij Chattr",
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
                     ),
-                  ],
-                )
-              ],
+                  ),
+
+                  const SizedBox(height: 10),
+
+                  const Text(
+                    "Log in om the chatten",
+                    textAlign: TextAlign.center,
+                  ),
+
+                  const SizedBox(height: 30),
+
+                  //Gebruikersnaam
+                  TextFormField(
+                    controller: _gebruikersnaamController,
+                    decoration: const InputDecoration(
+                      labelText: "Gebruikersnaam",
+                      prefixIcon: Icon(Icons.person_outline),
+                      border: OutlineInputBorder(),
+                    ),
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return "Vul je gebruikersnaam in";
+                      }
+                      return null;
+                    },
+                  ),
+
+                  const SizedBox(height: 16),
+
+                  //Wachtwoord
+                  TextFormField(
+                    controller: _wachtwoordController,
+                    obscureText: _verbergWachtwoord,
+                    decoration: InputDecoration(
+                      labelText: "Wachtwoord",
+                      prefixIcon: const Icon(Icons.lock_outline),
+                      border: const OutlineInputBorder(),
+                      suffixIcon: IconButton(
+                        icon: Icon(
+                          _verbergWachtwoord
+                              ? Icons.visibility_off
+                              : Icons.visibility,                                                   
+                        ),
+                        onPressed: () {
+                          setState(() {
+                            _verbergWachtwoord = !_verbergWachtwoord;
+                          });
+                        },
+                      ),
+                    ),
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return "Vul je wachtwoord in";
+                      }
+                      return null;
+                    },
+                  ),
+
+                  const SizedBox(height: 10),
+
+                  const SizedBox(height: 10),
+
+                  Align(
+                    alignment: Alignment.centerRight,
+                    child: TextButton(
+                      onPressed: () {},
+                      child: const Text("Wachtwoord vergeten?"),
+                    ),
+                  ),
+
+                  const SizedBox(height: 20),
+
+                  //Inlog knop
+                  SizedBox(
+                    height: 48,
+                    child: ElevatedButton(
+                      onPressed: _laden ? null : _login,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: colors.primary,
+                        foregroundColor: colors.onPrimary,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                      child: _laden
+                          ? const SizedBox(
+                            width: 20,
+                            height: 20,
+                            child:
+                                CircularProgressIndicator(strokeWidth: 2),
+                            )
+                          : const Text("Inloggen"),
+                    ),
+                  ),
+
+                  const SizedBox(height: 20),
+
+                  //Naar registreren
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Text("Nog geen account?"),
+                      TextButton(
+                        onPressed: () {
+                          Navigator.pushNamed(context, '/register');
+                        },
+                        child: const Text("Registreer"),
+                      ),
+                    ],
+                  )
+                ],
+              ),
             ),
           ),
         ),
       ),
-    ),
-  );
-}
+    );
+  }
 }
