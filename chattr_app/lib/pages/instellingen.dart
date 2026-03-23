@@ -4,9 +4,10 @@ class Instellingen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
+      body: 
+        Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Text(
               'Instellingen',
@@ -40,6 +41,15 @@ class Instellingen extends StatelessWidget {
                   ),
                   onPressed: () => Navigator.pushNamed(context, '/personalisatie'),
                   child: const Text("Personalisatie"),
+                ),
+
+                ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.amber,
+                    foregroundColor: Colors.black,
+                  ),
+                  onPressed: () => Navigator.pushNamed(context, '/home'),
+                  child: const Text("Home"),
                 ),
               ],
             ),

@@ -78,6 +78,15 @@ class _PersonalisatiePageState extends State<PersonalisatiePage> {
               onPressed: () => pickColor(context, false),
               child: Text('Kies tekstkleur'),
             ),
+
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.amber,
+                foregroundColor: Colors.black,
+              ),
+              onPressed: () => Navigator.pushNamed(context, '/home'),
+              child: const Text("Home"),
+            ),
           ],
         ),
       ),
