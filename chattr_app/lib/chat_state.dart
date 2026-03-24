@@ -3,18 +3,21 @@
 import 'package:flutter/material.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
 
 class Message {
   final String? text;
   final String? image;
   final String user;
   final bool isMe;
+  final DateTime timestamp;
 
   Message({
     required this.text,
     required this.image,
     required this.user,
     required this.isMe,
+    required this.timestamp,
   });
 
   factory Message.fromJson(Map<String, dynamic> json, String myName) {
@@ -23,6 +26,7 @@ class Message {
       image: json['image'],
       user: json['user'],
       isMe: json['user'] == myName,
+      timestamp: DateTime.parse(json['timestamp']),
     );
   }
 }
@@ -40,9 +44,28 @@ class ChatState extends ChangeNotifier {
     currentUser = username;
     _chats.clear();
 
-    await loadPinsFromServer();
+    await loadPinsLocal();
     notifyListeners();
   }
+
+  Future<void> loadPinsLocal() async {
+  final prefs = await SharedPreferences.getInstance();
+
+  _chatPins.clear();
+
+  for (final key in prefs.getKeys()) {
+    if (key.startsWith('pin_')) {
+      final contact = key.replaceFirst('pin_', '');
+      final pin = prefs.getString(key);
+
+      if (pin != null && pin.isNotEmpty) {
+        _chatPins[contact] = pin;
+      }
+    }
+  }
+
+  notifyListeners();
+}
 
   bool hasPin(String contact) => _chatPins.containsKey(contact);
 
@@ -53,18 +76,25 @@ class ChatState extends ChangeNotifier {
   }
 
   Future<void> setPin(String contact, String pin) async {
-    if (currentUser == null) return;
- 
     _chatPins[contact] = pin;
 
-    await sendPinToServer(contact, pin);
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('pin_$contact', pin); 
 
     notifyListeners();
   }
 
+  Future<String?> getPin(String contact) async {
+  final prefs = await SharedPreferences.getInstance();
+  return prefs.getString('pin_$contact');
+}
+
   Future<void> removePin(String contact) async {
     _chatPins.remove(contact);
-    await sendPinToServer(contact, '');
+    
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove('pin_$contact'); 
+
     notifyListeners();
   }
 
@@ -117,15 +147,9 @@ Future<void> sendPinToServer(String contact, String pin) async {
 
     if (response.statusCode != 200) return;
 
-    final data = jsonDecode(response.body);
+    final List data = jsonDecode(response.body);
 
-    _chatPins.clear();
-
-    if (data[currentUser] != null) {
-      data[currentUser].forEach((contact, pin) {
-        _chatPins[contact] = pin.toString();
-      });
-    }
+    _chats.clear();
 
     for (final m in data) {
       final from = m['user'];
@@ -143,8 +167,25 @@ Future<void> sendPinToServer(String contact, String pin) async {
 
   //actieve contacten ophalen
   List<String> getActiveContacts() {
-    return _chats.keys.toList();
-  }
+  final contacts = _chats.keys.toList();
+
+  contacts.sort((a, b) {
+    final aMessages = _chats[a];
+    final bMessages = _chats[b];
+
+    final aTime = (aMessages != null && aMessages.isNotEmpty)
+        ? aMessages.last.timestamp
+        : DateTime.fromMillisecondsSinceEpoch(0);
+
+    final bTime = (bMessages != null && bMessages.isNotEmpty)
+        ? bMessages.last.timestamp
+        : DateTime.fromMillisecondsSinceEpoch(0);
+
+    return bTime.compareTo(aTime); 
+  });
+
+  return contacts;
+}
 
   Future<List<String>> getNewContacts() async {
     if (currentUser == null) return [];

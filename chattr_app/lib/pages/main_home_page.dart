@@ -62,9 +62,8 @@ class _MainHomePageState extends State<MainHomePage> {
                   children: [
                     Text(contact),
                     if (chatState.hasPin(contact))
-                      Icon(Icons.lock),
-                      Padding(
-                        padding: const EdgeInsets.only(left: 6),
+                      const Padding(
+                        padding: EdgeInsets.only(left: 6),
                         child: Icon(
                           Icons.lock,
                           size: 16,
@@ -74,13 +73,12 @@ class _MainHomePageState extends State<MainHomePage> {
                   ],
                 ),
                 onTap: () async {
-                  await chatState.loadPinsFromServer();
                   if (chatState.hasPin(contact)) {
                     final pinController = TextEditingController();
                     final enteredPin = await showDialog<String>(
                       context: context,
                       builder: (context) => AlertDialog(
-                        title: Text("Voer PIN in"),
+                        title: const Text("Voer PIN in"),
                         content: TextField(
                           controller: pinController,
                           obscureText: true,
@@ -102,12 +100,13 @@ class _MainHomePageState extends State<MainHomePage> {
 
                     if (enteredPin == null) return;
 
-                    bool isCorrect = await chatState.checkPin(contact, enteredPin); 
-                    if (!isCorrect) {
+                    final savedPin = await chatState.getPin(contact);
+
+                    if (enteredPin != savedPin) {
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(content: Text("Foute PIN!")),
                       );
-                      return; 
+                      return;
                     }
                   }
 

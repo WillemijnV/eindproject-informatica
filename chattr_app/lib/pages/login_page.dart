@@ -40,12 +40,12 @@ class _LoginPageState extends State<LoginPage> {
 
     setState(() => _laden = true);
 
+    final String username = _gebruikersnaamController.text.trim();
+    final String password = _wachtwoordController.text.trim();
+
     bool success = false;
     try {
-      success = await loginUser(
-        _gebruikersnaamController.text.trim(),
-        _wachtwoordController.text,
-      );
+      success = await loginUser(username, password);
       print("loginUser returns: $success");
     } catch (e) {
       print("Fout bij loginUser: $e");
@@ -61,21 +61,17 @@ class _LoginPageState extends State<LoginPage> {
     }
 
     // Succesvol ingelogd
-    context.read<AppState>().login(
-          "123", // later eventueel userId
-          _gebruikersnaamController.text.trim(),
-        );
+    context.read<AppState>().login("123", username);
 
     //chats laden
     try {
       final chatState = context.read<ChatState>();
-      await chatState.setCurrentUser(_gebruikersnaamController.text.trim());
+      await chatState.setCurrentUser(username);
       await chatState.loadAllChatsForUsers();
     } catch (e) {
       print("Fout bij laden chats: $e");
     }
 
-    print("Navigating to MainHomePage...");
     if (!mounted) return;
     Navigator.pushReplacement(
       context, 

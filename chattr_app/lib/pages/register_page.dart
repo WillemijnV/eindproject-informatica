@@ -19,6 +19,7 @@ class _RegisterPageState extends State<RegisterPage> {
   final TextEditingController _wachtwoordController = TextEditingController();
 
   bool _verbergWachtwoord = true;
+  bool _laden = false;
 
   // Wachtwoord regels
   bool hasUppercase = false;
@@ -64,31 +65,37 @@ class _RegisterPageState extends State<RegisterPage> {
   Future<void> _register() async {
     if (!_formKey.currentState!.validate()) return;
 
+    setState(() => _laden = true);
+
     final username = _gebruikersnaamController.text.trim();
+    final password = _wachtwoordController.text;
+    final name = _naamController.text.trim();
+    final email = _emailController.text.trim();
+    final phone = _telefoonController.text.trim();
 
-    final error = await registerUser(
-    _naamController.text.trim(),
-    _gebruikersnaamController.text.trim(),
-    _wachtwoordController.text,
-    _emailController.text.trim(),
-    _telefoonController.text.trim(),
-  );
+    try {
+      final error = await registerUser(name, username, password, email, phone);
 
-    if (error != null) {
+      if (error != null) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(error)));
+        setState(() => _laden = false);
+        return;
+      }
+
+      await CryptoService.getOrCreateAESKey(username);
+
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(error)),
+        const SnackBar(content: Text('Registratie gelukt!')),
       );
-      return;
+
+      Navigator.pushReplacementNamed(context, '/login');
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Fout bij registratie: $e')),
+      );
+    } finally {
+      setState(() => _laden = false);
     }
-
-    await CryptoService.getOrCreateAESKey(username);
-
-
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Registratie gelukt!')),
-    );
-
-    Navigator.pushReplacementNamed(context, '/login');
   }
 
   @override
@@ -196,24 +203,22 @@ class _RegisterPageState extends State<RegisterPage> {
                               ? Icons.visibility_off
                               : Icons.visibility,
                         ),
-                        onPressed: () {
-                          setState(() {
-                            _verbergWachtwoord = !_verbergWachtwoord;
-                          });
-                        },
+                        onPressed: () =>
+                          setState(() => _verbergWachtwoord = !_verbergWachtwoord),
+                        ),
                       ),
-                    ),
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return "Vul een wachtwoord in";
-                      }
-                      if (!hasUppercase ||
-                          !hasLowercase ||
-                          !hasNumber ||
-                          !hasSpecialChar ||
-                          !hasMinLength) {
-                        return "Wachtwoord is niet sterk genoeg";
-                      }
+                    
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return "Vul een wachtwoord in";
+                        }
+                        if (!hasUppercase ||
+                            !hasLowercase ||
+                            !hasNumber ||
+                            !hasSpecialChar ||
+                            !hasMinLength) {
+                          return "Wachtwoord is niet sterk genoeg";
+                        }
                       return null;
                     },
                   ),
@@ -231,7 +236,7 @@ class _RegisterPageState extends State<RegisterPage> {
                   SizedBox(
                     height: 48,
                     child: ElevatedButton(
-                      onPressed: _register,
+                      onPressed: _laden ? null : _register,
                       style: ElevatedButton.styleFrom(
                         backgroundColor: colors.primary,
                         foregroundColor: colors.onPrimary,
@@ -239,7 +244,9 @@ class _RegisterPageState extends State<RegisterPage> {
                           borderRadius: BorderRadius.circular(12),
                         ),
                       ),
-                      child: const Text("Registreren"),
+                      child: _laden
+                          ? const CircularProgressIndicator(color: Colors.white)
+                          : const Text("Registreren"),
                     ),
                   ),
 
@@ -250,19 +257,19 @@ class _RegisterPageState extends State<RegisterPage> {
                     children: [
                       const Text("Al een account?"),
                       TextButton(
-                        onPressed: () {
-                          Navigator.pushReplacementNamed(context, '/login');
-                        },
-                        child: const Text("Inloggen"),
-                      ),
-                    ],
-                  ),
-                ],
+                        onPressed: () =>
+                          Navigator.pushReplacementNamed(context, '/login'),
+                          child: const Text("Inloggen"),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
               ),
             ),
           ),
         ),
-      ),
-    );
+      );
+    }
   }
-}
+

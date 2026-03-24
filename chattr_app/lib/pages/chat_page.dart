@@ -87,10 +87,14 @@ class _ChatPageState extends State<ChatPage> {
 
 void _togglePin() async {
   final chatState = context.read<ChatState>();
-  final hasPin = chatState.hasPin(widget.contactName);
 
-  if (!hasPin) {
-    final TextEditingController pinController = TextEditingController();
+  if (chatState.hasPin (widget.contactName)) {
+    await chatState.removePin(widget.contactName);
+    return;
+  } 
+
+    final pinController = TextEditingController();
+
     final pin = await showDialog<String>(
       context: context,
       builder: (context) => AlertDialog(
@@ -99,28 +103,27 @@ void _togglePin() async {
           controller: pinController,
           obscureText: true,
           keyboardType: TextInputType.number,
+          decoration: const InputDecoration(hintText: "PIN")
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: Text("Annuleren")),
+            child: const Text("Annuleren"),
+          ),
           TextButton(
             onPressed: () => Navigator.pop(context, pinController.text),
-            child: Text("Opslaan")),       
+            child: const Text("Opslaan"),
+          ),   
         ],
       ),
-    );
+    );    
 
     if (pin != null && pin.isNotEmpty) {
       await chatState.setPin(widget.contactName, pin);
     }
 
     pinController.dispose();
-    
-  } else {
-    await chatState.removePin(widget.contactName);
   }
-}
 
   @override
   Widget build(BuildContext context) {
@@ -134,10 +137,10 @@ void _togglePin() async {
           IconButton(
             icon: Icon(
               chatState.hasPin(widget.contactName)
-                  ? Icons.lock
-                  : Icons.lock_open,
-              color: Colors.amber,
-            ),
+              ? Icons.lock
+              : Icons.lock_open,
+            color: Colors.amber,
+          ),
             onPressed: _togglePin,
           ),
         ],
@@ -148,7 +151,7 @@ void _togglePin() async {
             child: ListView.builder(
               itemCount: messages.length,
               itemBuilder: (context, index) {
-                final message = messages[index];
+                final message = messages[index];             
 
                 return Align(
                   alignment: message.isMe
@@ -181,6 +184,7 @@ void _togglePin() async {
               },
             ),
           ),
+      
 
           const Divider(height: 1),
 
