@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_colorpicker/flutter_colorpicker.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class PersonalisatiePage extends StatefulWidget {
   @override
@@ -9,6 +10,30 @@ class PersonalisatiePage extends StatefulWidget {
 class _PersonalisatiePageState extends State<PersonalisatiePage> {
   Color backgroundColor = Colors.white;
   Color textColor = Colors.amber;
+
+  @override
+  void initState() {
+    super.initState();
+    loadColors();
+  }
+
+  // 🔹 Kleuren laden bij opstart
+  Future<void> loadColors() async {
+    final prefs = await SharedPreferences.getInstance();
+
+    setState(() {
+      backgroundColor = Color(prefs.getInt('bgColor') ?? Colors.white.value);
+      textColor = Color(prefs.getInt('textColor') ?? Colors.amber.value);
+    });
+  }
+
+  // 🔹 Kleuren opslaan
+  Future<void> saveColors() async {
+    final prefs = await SharedPreferences.getInstance();
+
+    await prefs.setInt('bgColor', backgroundColor.value);
+    await prefs.setInt('textColor', textColor.value);
+  }
 
   void pickColor(BuildContext context, bool isBackground) {
     Color tempColor = isBackground ? backgroundColor : textColor;
@@ -29,7 +54,7 @@ class _PersonalisatiePageState extends State<PersonalisatiePage> {
           actions: [
             TextButton(
               child: Text('OK'),
-              onPressed: () {
+              onPressed: () async {
                 setState(() {
                   if (isBackground) {
                     backgroundColor = tempColor;
@@ -37,6 +62,9 @@ class _PersonalisatiePageState extends State<PersonalisatiePage> {
                     textColor = tempColor;
                   }
                 });
+
+                await saveColors(); // 🔥 opslaan!
+
                 Navigator.of(context).pop();
               },
             ),
@@ -65,7 +93,6 @@ class _PersonalisatiePageState extends State<PersonalisatiePage> {
 
             SizedBox(height: 30),
 
-            // Knop voor achtergrondkleur
             ElevatedButton(
               onPressed: () => pickColor(context, true),
               child: Text('Kies achtergrondkleur'),
@@ -73,7 +100,6 @@ class _PersonalisatiePageState extends State<PersonalisatiePage> {
 
             SizedBox(height: 10),
 
-            // Knop voor tekstkleur
             ElevatedButton(
               onPressed: () => pickColor(context, false),
               child: Text('Kies tekstkleur'),
