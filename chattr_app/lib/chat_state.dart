@@ -1,9 +1,11 @@
 //chat status, berichten
 
+import 'package:chattr_app/services/crypto_service.dart';
 import 'package:flutter/material.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:cryptography/cryptography.dart';
 
 class Message {
   final String? text;
@@ -20,15 +22,21 @@ class Message {
     required this.timestamp,
   });
 
-  factory Message.fromJson(Map<String, dynamic> json, String myName) {
-    return Message(
-      text: json['text'],
-      image: json['image'],
-      user: json['user'],
-      isMe: json['user'] == myName,
-      timestamp: DateTime.parse(json['timestamp']),
-    );
-  }
+  Map<String, dynamic> toJson() => {
+      'text': text,
+      'image': image,
+      'user': user,
+      'isMe': isMe,
+      'timestamp': timestamp.toIso8601String(),
+    };
+
+  static Message fromJson(Map<String, dynamic> json) => Message(
+        text: json['text'],
+        image: json['image'],
+        user: json['user'],
+        isMe: json['isMe'],
+        timestamp: DateTime.parse(json['timestamp']),
+      );
 }
 
 class ChatState extends ChangeNotifier {
@@ -40,27 +48,58 @@ class ChatState extends ChangeNotifier {
   static const String baseUrl = 'https://729bd5b9-d330-416c-bbbf-87ce6cdd04a7-00-1kstgmc8ftol5.worf.replit.dev:5000';
   String? currentUser;
 
-  Future<void> setCurrentUser(String username) async {
-    currentUser = username;
-    _chats.clear();
+  Future<void> saveChatsLocally() async {
+    final prefs = await SharedPreferences.getInstance();
+    for (var contact in _chats.keys) {
+      final messages = _chats[contact]!.map((m) => m.toJson()).toList();
+      await prefs.setString('chat_${currentUser}_$contact', jsonEncode(messages));
+    }
+  }
 
-    await loadPinsLocal();
+  Future<void> loadChatsLocally() async {
+    if (currentUser == null) return;
+    final prefs = await SharedPreferences.getInstance();
+    for (var key in prefs.getKeys()) {
+      if (key.startsWith('chat_${currentUser}_')) {
+        final contact = key.replaceFirst('chat_${currentUser}_', '');
+        final stored = prefs.getString(key);
+        if (stored != null) {
+          final List data = jsonDecode(stored);
+          _chats[contact] = data.map((m) => Message.fromJson(m)).toList();
+        }
+      }
+    }
     notifyListeners();
   }
 
-  Future<void> loadPinsLocal() async {
-  final prefs = await SharedPreferences.getInstance();
+  Future<void> setCurrentUser(String username) async {
+    currentUser = username;
+    _chats.clear();
+    _chatPins.clear();
 
+    final prefs = await SharedPreferences.getInstance();
+    final keys = prefs.getKeys();
+    for (final key in keys) {
+      if (key.startsWith('pin_${currentUser}_')) {
+        final contact = key.replaceFirst('pin_${currentUser}_', '');
+        _chatPins[contact] = prefs.getString(key)!;
+      }
+    }
+
+    await loadChatsLocally();
+    notifyListeners();
+  }
+
+  Future<void> loadPins() async {
+  if (currentUser == null) return;
+
+  final prefs = await SharedPreferences.getInstance();
   _chatPins.clear();
 
   for (final key in prefs.getKeys()) {
-    if (key.startsWith('pin_')) {
-      final contact = key.replaceFirst('pin_', '');
-      final pin = prefs.getString(key);
-
-      if (pin != null && pin.isNotEmpty) {
-        _chatPins[contact] = pin;
-      }
+    if (key.startsWith('pin_$currentUser!_')) {
+      final contact = key.split('_')[2];
+      _chatPins[contact] = prefs.getString(key)!;
     }
   }
 
@@ -76,10 +115,12 @@ class ChatState extends ChangeNotifier {
   }
 
   Future<void> setPin(String contact, String pin) async {
+    if (currentUser == null) return;
+
     _chatPins[contact] = pin;
 
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setString('pin_$contact', pin); 
+    await prefs.setString('pin_${currentUser}_$contact', pin); 
 
     notifyListeners();
   }
@@ -93,7 +134,7 @@ class ChatState extends ChangeNotifier {
     _chatPins.remove(contact);
     
     final prefs = await SharedPreferences.getInstance();
-    await prefs.remove('pin_$contact'); 
+    await prefs.remove('pin_${currentUser}_$contact'); 
 
     notifyListeners();
   }
@@ -159,7 +200,7 @@ Future<void> sendPinToServer(String contact, String pin) async {
 
       _chats.putIfAbsent(otherUser, () => []);
       _chats[otherUser]!.add(
-        Message.fromJson(m, currentUser!),
+        Message.fromJson(m),
       );
     }
     notifyListeners();
@@ -204,42 +245,97 @@ Future<void> sendPinToServer(String contact, String pin) async {
   }
 
   Future<void> fetchMessages(String contactName) async {
-    final response = await http.get(Uri.parse('$baseUrl/messages'));
+    if (currentUser == null) return;
 
-    if (response.statusCode == 200) {
-      final List data = jsonDecode(response.body) as List;
+    final response = await http.get(Uri.parse('$baseUrl/messages/$currentUser'));
+    if (response.statusCode != 200) return;
 
-      _chats[contactName] = data
-        .where((m) => 
-          (m['user']?.toString() == currentUser && m['to']?.toString() == contactName) ||
-          (m['user']?.toString() == contactName && m['to']?.toString() == currentUser))
-        .map<Message>((m) => Message.fromJson(m, currentUser!))
-        .toList();
+    final List data = jsonDecode(response.body);
 
-      notifyListeners();
+    _chats[contactName]?.clear();
+
+    for (final m in data) {
+      if ((m['user'] == currentUser && m['to'] == contactName) ||
+          (m['user'] == contactName && m['to'] == currentUser)) {
+
+        SecretKey key;
+        if (m['user'] == currentUser) {
+          key = await CryptoService.getAESKey(currentUser!);
+        } else {
+          key = await CryptoService.getAESKey(m['user']);
+        }
+
+        final decryptedText = await CryptoService.decrypt({
+          'cipherText': m['cipherText'],
+          'nonce': m['nonce'],
+          'mac': m['mac'],
+        }, key);
+
+        final exists = _chats[contactName]!.any((msg) =>
+          msg.timestamp.toIso8601String() == m['timestamp'] &&
+          msg.user == m['user']
+        );
+        if (exists) continue;
+
+        _chats.putIfAbsent(contactName, () => []);          
+        _chats[contactName]!.add(Message(
+          text: decryptedText,
+          image: m['image'],
+          user: m['user'],
+          isMe: m['user'] == currentUser,
+          timestamp: DateTime.parse(m['timestamp']),
+        ));
+      }
     }
+    
+    await saveChatsLocally();
+    notifyListeners();
+  }
+
+  void clearChats() {
+    _chats.clear();
+    notifyListeners();
   }
 
   Future<void> sendMessage(String contactName, String text) async {
     if (currentUser == null) return;
-    
+
+    final key = await CryptoService.getAESKey(currentUser!);
+    final encrypted = await CryptoService.encrypt(text, key);
+
     final response = await http.post(
       Uri.parse('$baseUrl/messages'),
       headers: {'Content-Type': 'application/json'},
       body: jsonEncode({
         'user': currentUser,
         'to': contactName,
-        'text': text,
+        'cipherText': encrypted['cipherText'],
+        'nonce': encrypted['nonce'],
+        'mac': encrypted['mac'],
         'timestamp': DateTime.now().toIso8601String(),
       }),
     );
 
-    if (response.statusCode == 201) {
-      _knownContacts.add(contactName);
-      _chats.putIfAbsent(contactName, () => []);
-      await fetchMessages(contactName);
+    if (response.statusCode != 201) {
+      throw Exception("Bericht kan niet worden verzonden");
     }
+
+    _knownContacts.add(contactName);
+    _chats.putIfAbsent(contactName, () => []);
+    _chats[contactName]!.add(Message(
+      text: text,
+      image: null,
+      user: currentUser!,
+      isMe: true,
+      timestamp: DateTime.now(),
+    ));
+
+    await saveChatsLocally();
+    notifyListeners();
   }
+
+  List<Message> getMessages(String contactName) => _chats[contactName] ?? [];
+
 
   Future<void> sendImageWeb(String contactName, String filename, List<int> bytes) async {
     if (currentUser == null) return;
@@ -257,10 +353,5 @@ Future<void> sendPinToServer(String contact, String pin) async {
       _chats.putIfAbsent(contactName, () => []);
       await fetchMessages(contactName);
     }
-  }
-
-  void clearChats() {
-    _chats.clear();
-    notifyListeners();
   }
 }

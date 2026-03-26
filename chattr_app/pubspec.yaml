@@ -13,7 +13,7 @@ dependencies:
   provider: ^6.1.5
   cryptography: ^2.7.0
   cryptography_flutter: ^2.3.0
-  shared_preferences: ^2.2.2
+  shared_preferences: ^2.1.1
   http: ^1.1.0
   emoji_picker_flutter: ^1.6.3
   image_picker: ^1.1.2

@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import '../services/auth_service.dart';
-import '../services/crypto_service.dart';
 
 class RegisterPage extends StatefulWidget {
   const RegisterPage({super.key});
@@ -81,8 +80,6 @@ class _RegisterPageState extends State<RegisterPage> {
         setState(() => _laden = false);
         return;
       }
-
-      await CryptoService.getOrCreateAESKey(username);
 
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Registratie gelukt!')),
