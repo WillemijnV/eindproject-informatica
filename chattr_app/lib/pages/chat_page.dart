@@ -9,6 +9,7 @@ import 'package:image_picker/image_picker.dart';
 
 class ChatPage extends StatefulWidget {
   final String contactName;
+
   const ChatPage({required this.contactName, super.key});
 
   @override
@@ -18,30 +19,35 @@ class ChatPage extends StatefulWidget {
 class _ChatPageState extends State<ChatPage> {
   final TextEditingController _controller = TextEditingController();
   final FocusNode _focusNode = FocusNode();
-  final ImagePicker _picker = ImagePicker();
-  Timer? _pollingTimer;
+  final ImagePicker _picker = ImagePicker(); 
 
+  Timer? _pollingTimer;
   bool _showEmojiPicker = false;
 
   @override
   void initState() {
     super.initState();
+
     final chatState = context.read<ChatState>();
 
-    chatState.ensureChatExists(widget.contactName);
-    chatState.fetchMessages(widget.contactName);
+    chatState.loadChatsLocally();
 
+    chatState.ensureChatExists(widget.contactName);
+    
+    Future.delayed(const Duration(milliseconds: 300), () {
+      chatState.fetchMessages(widget.contactName);
+    });
+  
     _focusNode.addListener(() {
       if (_focusNode.hasFocus) {
-        setState(() {
-          _showEmojiPicker = false;
-        });
-      }
+        setState(() => _showEmojiPicker = false);
+      }    
     });
+
     _pollingTimer = Timer.periodic(
       const Duration(seconds: 5),
       (_) => chatState.fetchMessages(widget.contactName),
-    );
+    );    
   }
 
   @override
@@ -85,15 +91,18 @@ class _ChatPageState extends State<ChatPage> {
     );
   }
 
-void _togglePin() async {
-  final chatState = context.read<ChatState>();
-
-  if (chatState.hasPin (widget.contactName)) {
-    await chatState.removePin(widget.contactName);
-    return;
-  } 
-
+  Future<void> _togglePin() async {
+    final chatState = context.read<ChatState>();
     final pinController = TextEditingController();
+    
+    if (chatState.hasPin(widget.contactName)) {
+      await chatState.removePin(widget.contactName);
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("PIN verwijderd")),
+      );
+      return;
+    }
 
     final pin = await showDialog<String>(
       context: context,
@@ -103,26 +112,29 @@ void _togglePin() async {
           controller: pinController,
           obscureText: true,
           keyboardType: TextInputType.number,
-          decoration: const InputDecoration(hintText: "PIN")
+          decoration: const InputDecoration(hintText: "PIN"),
         ),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(context),
+            onPressed: () => Navigator.pop(context), 
             child: const Text("Annuleren"),
           ),
           TextButton(
-            onPressed: () => Navigator.pop(context, pinController.text),
+            onPressed: () =>
+                Navigator.pop(context, pinController.text),
             child: const Text("Opslaan"),
-          ),   
+          ),
         ],
       ),
-    );    
+    );
 
     if (pin != null && pin.isNotEmpty) {
       await chatState.setPin(widget.contactName, pin);
-    }
 
-    pinController.dispose();
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("PIN ingesteld")),
+      );
+    }
   }
 
   @override
@@ -137,31 +149,29 @@ void _togglePin() async {
           IconButton(
             icon: Icon(
               chatState.hasPin(widget.contactName)
-              ? Icons.lock
-              : Icons.lock_open,
-            color: Colors.amber,
-          ),
+                  ? Icons.lock
+                  : Icons.lock_open,
+              color: Colors.amber,
+            ),
             onPressed: _togglePin,
           ),
         ],
       ),
+
       body: Column(
         children: [
           Expanded(
             child: ListView.builder(
               itemCount: messages.length,
               itemBuilder: (context, index) {
-                final message = messages[index];             
+                final message = messages[index];
 
                 return Align(
                   alignment: message.isMe
                       ? Alignment.centerRight
                       : Alignment.centerLeft,
                   child: Container(
-                    margin: const EdgeInsets.symmetric(
-                      vertical: 4,
-                      horizontal: 8,
-                    ),
+                    margin: const EdgeInsets.symmetric(vertical: 4, horizontal: 8),
                     padding: const EdgeInsets.all(10),
                     decoration: BoxDecoration(
                       color: message.isMe
@@ -173,19 +183,18 @@ void _togglePin() async {
                         ? Text(message.text!)
                         : (message.image != null
                             ? Image.network(
-                                '${ChatState.baseUrl}/uploads/${message.image}',
-                                width: 300,
-                                height: 200,
-                                fit: BoxFit.cover,
-                              )
-                            : const SizedBox()),
+                              '${ChatState.baseUrl}/uploads/${message.image}',
+                              width: 300,
+                              height: 200,
+                              fit: BoxFit.cover,
+                            )
+                          : const SizedBox()),
                   ),
                 );
               },
             ),
           ),
-      
-
+           
           const Divider(height: 1),
 
           // Invoer veld
@@ -244,5 +253,10 @@ void _togglePin() async {
         ],
       ),
     );
-  }
+  } 
 }
+  
+        
+                    
+
+          

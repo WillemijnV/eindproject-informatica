@@ -11,6 +11,7 @@ import 'new_contact_page.dart';
 
 class MainHomePage extends StatefulWidget {
   const MainHomePage({super.key});
+
   @override
   State<MainHomePage> createState() => _MainHomePageState();
 }
@@ -33,7 +34,6 @@ class _MainHomePageState extends State<MainHomePage> {
         actions: [
           TextButton.icon(
             onPressed: () {
-              context.read<ChatState>().clearChats();
 
               Navigator.push(
                 context,
@@ -75,6 +75,7 @@ class _MainHomePageState extends State<MainHomePage> {
                 onTap: () async {
                   if (chatState.hasPin(contact)) {
                     final pinController = TextEditingController();
+
                     final enteredPin = await showDialog<String>(
                       context: context,
                       builder: (context) => AlertDialog(
@@ -98,16 +99,13 @@ class _MainHomePageState extends State<MainHomePage> {
                       ),
                     );
 
-                    if (enteredPin == null) return;
-
-                    final savedPin = await chatState.getPin(contact);
-
-                    if (enteredPin != savedPin) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text("Foute PIN!")),
-                      );
-                      return;
-                    }
+                    if (enteredPin == null ||
+                        !(await chatState.checkPin(contact, enteredPin))) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text("Foute PIN!")),
+                          );
+                          return;                          
+                        }
                   }
 
                   Navigator.push(
@@ -117,9 +115,9 @@ class _MainHomePageState extends State<MainHomePage> {
                     ),
                   );
                 },              
-             );
-           },
-         ), 
+              );
+            },
+          ), 
 
       //nieuwe chat button
       floatingActionButton: FloatingActionButton(

@@ -68,6 +68,8 @@ class _LoginPageState extends State<LoginPage> {
       final chatState = context.read<ChatState>();
       await chatState.setCurrentUser(username);
       await chatState.loadAllChatsForUsers();
+      await chatState.loadPinsFromServer();
+      await chatState.saveChatsLocally();
     } catch (e) {
       print("Fout bij laden chats: $e");
     }
